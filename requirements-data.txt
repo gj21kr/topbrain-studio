@@ -1,0 +1,6 @@
+# Optional offline converter only; Python 3.14 verified on Windows.
+# NumPy/NiBabel/scikit-image: BSD licenses; trimesh: MIT.
+numpy==2.5.3
+nibabel==5.4.2
+scikit-image==0.26.0
+trimesh==5.1.0

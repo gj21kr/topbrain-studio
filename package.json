@@ -1,0 +1,14 @@
+{
+  "name": "topbrain-studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5181 --strictPort",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5181 --strictPort",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": { "react": "19.2.8", "react-dom": "19.2.8", "three": "0.185.1", "lucide-react": "^0.577.0" },
+  "devDependencies": { "@types/node": "^22.19.0", "@types/react": "^19.2.0", "@types/react-dom": "^19.2.0", "@types/three": "^0.185.0", "@vitejs/plugin-react": "6.1.1", "tsx": "^4.21.0", "typescript": "5.9.3", "vite": "8.2.2" }
+}
