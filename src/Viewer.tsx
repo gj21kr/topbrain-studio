@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { demo, explosionOffset, inspectGlb, validateManifest, validateMeshData, type Manifest, type Structure } from './model';
+import { demo, explosionOffset, inspectGlb, validateManifest, validateMeshData, structureOpacity, type Manifest, type Structure } from './model';
 
 export interface Asset { manifest: Manifest; scene?: THREE.Group }
 export async function readAsset(manifestData: unknown, buffer: ArrayBuffer): Promise<Asset> {
@@ -33,7 +33,7 @@ export function disposeAsset(asset: Asset) {
   asset.scene?.traverse(obj => { if (obj instanceof THREE.Mesh) { obj.geometry.dispose(); const mats = Array.isArray(obj.material) ? obj.material : [obj.material]; mats.forEach(m => m.dispose()); } });
 }
 
-interface Props { asset: Asset; selected: string; hidden: Set<string>; isolate: boolean; explosion: number; opacity: number; labels: boolean; autoRotate: boolean; view: { name: string; tick: number }; onSelect: (id: string) => void; onError: (message: string) => void }
+interface Props { asset: Asset; selected: string; hidden: Set<string>; isolate: boolean; explosion: number; opacity: number; opacities: Map<string, number>; labels: boolean; autoRotate: boolean; view: { name: string; tick: number }; onSelect: (id: string) => void; onError: (message: string) => void }
 interface Piece { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; original: THREE.Vector3; data: Structure; label: HTMLDivElement }
 
 export default function Viewer(props: Props) {
@@ -50,7 +50,7 @@ export default function Viewer(props: Props) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.5;
-    renderer.domElement.setAttribute('aria-label', 'Interactive 3D vascular model');
+    renderer.domElement.setAttribute('aria-label', 'Interactive 3D anatomy model');
     renderer.domElement.setAttribute('role', 'img');
     element.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
@@ -120,13 +120,14 @@ export default function Viewer(props: Props) {
       controls.autoRotate = p.autoRotate;
       for (const piece of pieces) {
         const selected = piece.data.id === p.selected;
-        piece.mesh.visible = !p.hidden.has(piece.data.id) && (!p.isolate || selected);
+        const opacity = structureOpacity(piece.data, p.opacities, selected, p.opacity);
+        piece.mesh.visible = !p.hidden.has(piece.data.id) && (!p.isolate || selected) && opacity > 0;
         const offset = explosionOffset(piece.data.explode, p.explosion, explosionScale);
         const target = piece.original.clone().add(new THREE.Vector3(...offset)); piece.mesh.position.lerp(target, .12);
         piece.mesh.material.emissive.set(selected ? piece.data.color : '#000000'); piece.mesh.material.emissiveIntensity = selected ? .26 : 0;
-        piece.mesh.material.opacity = selected ? 1 : p.opacity;
-        piece.mesh.material.transparent = !selected && p.opacity < 1;
-        piece.mesh.material.depthWrite = selected || p.opacity > .7;
+        piece.mesh.material.opacity = opacity;
+        piece.mesh.material.transparent = opacity < 1;
+        piece.mesh.material.depthWrite = opacity > .7;
         piece.label.style.display = p.labels && piece.mesh.visible ? 'block' : 'none';
         if (p.labels && piece.mesh.visible) {
           const center = new THREE.Box3().setFromObject(piece.mesh).getCenter(new THREE.Vector3()).project(camera);
