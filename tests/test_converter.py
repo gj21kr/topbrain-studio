@@ -1,6 +1,7 @@
 """Synthetic, CPU-only checks of geometry and the browser asset boundary."""
 import json
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 
@@ -8,7 +9,7 @@ import nibabel as nib
 import numpy as np
 import trimesh
 
-from scripts.convert_topbrain import convert, label_mesh, read_labelmap, validate_embedded_glb, voxel_to_gltf_transform
+from scripts.convert_topbrain import MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, convert, label_mesh, read_labelmap, validate_embedded_glb, voxel_to_gltf_transform
 
 
 class ConverterTests(unittest.TestCase):
@@ -114,3 +115,130 @@ class ConverterTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class EmbeddedGlbTests(unittest.TestCase):
+    """The producer half of the asset boundary reimplemented in src/model.ts.
+
+    Every rejection here has a counterpart in inspectGlb, readAsset or
+    validateMeshData. A limit that moves on one side must move on both.
+    """
+
+    def glb(self, document):
+        raw = json.dumps(document).encode("utf-8")
+        padded = raw + b" " * (-len(raw) % 4)
+        header = struct.pack("<IIIII", 0x46546C67, 2, 20 + len(padded), len(padded), 0x4E4F534A)
+        return header + padded
+
+    def document(self, names=("label-001",), vertices=300, indices=300, primitives=1, mode=4):
+        accessors, meshes, nodes = [], [], []
+        for index, name in enumerate(names):
+            accessors.append({"type": "VEC3", "componentType": 5126, "count": vertices})
+            accessors.append({"type": "SCALAR", "componentType": 5125, "count": indices})
+            primitive = {"attributes": {"POSITION": 2 * index}, "indices": 2 * index + 1, "mode": mode}
+            meshes.append({"primitives": [dict(primitive) for _ in range(primitives)]})
+            nodes.append({"name": name, "mesh": index})
+        return {"asset": {"version": "2.0"}, "accessors": accessors, "meshes": meshes, "nodes": nodes}
+
+    def test_accepts_the_static_subset_and_blocks_external_resources(self):
+        self.assertEqual(len(validate_embedded_glb(self.glb(self.document()), {"label-001"})["nodes"]), 1)
+        for uri in ["https://example.com/scan.bin", "../private.bin", "data:application/octet-stream;base64,AA=="]:
+            with self.subTest(uri=uri):
+                document = self.document() | {"buffers": [{"uri": uri}]}
+                with self.assertRaisesRegex(ValueError, "URI"):
+                    validate_embedded_glb(self.glb(document), {"label-001"})
+        for key, value in [("extensionsUsed", ["KHR_draco_mesh_compression"]), ("extensionsRequired", ["KHR_draco_mesh_compression"]), ("animations", [{}]), ("skins", [{}])]:
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(ValueError, "static"):
+                    validate_embedded_glb(self.glb(self.document() | {key: value}), {"label-001"})
+
+    def test_rejects_malformed_header_and_json_chunk(self):
+        payload = self.glb(self.document())
+        for label, broken in [
+            ("truncated", payload[:12]),
+            ("magic", b"\x00\x00\x00\x00" + payload[4:]),
+            ("version", payload[:4] + struct.pack("<I", 1) + payload[8:]),
+            ("declared length", payload[:8] + struct.pack("<I", len(payload) + 4) + payload[12:]),
+        ]:
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError, "header"):
+                    validate_embedded_glb(broken, {"label-001"})
+        for label, broken in [
+            ("chunk type", payload[:16] + struct.pack("<I", 0x004E4942) + payload[20:]),
+            ("unaligned chunk", payload[:12] + struct.pack("<I", 13) + payload[16:]),
+            ("chunk past the file", payload[:12] + struct.pack("<I", len(payload)) + payload[16:]),
+        ]:
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError, "JSON chunk"):
+                    validate_embedded_glb(broken, {"label-001"})
+
+    def test_rejects_meshes_the_browser_would_refuse_to_import(self):
+        # Regression: the converter used to cap only total bytes, so a single
+        # dense structure could stay under 150 MB and still exceed the per-mesh
+        # limits validateMeshData applies after the browser parses the file.
+        for label, kwargs in [
+            ("too many vertices", {"vertices": 3_000_001}),
+            ("no vertices", {"vertices": 2}),
+            ("too many indices", {"indices": 9_000_003}),
+            ("incomplete triangles", {"indices": 301}),
+            ("degenerate index count", {"indices": 0}),
+        ]:
+            with self.subTest(label=label):
+                with self.assertRaises(ValueError):
+                    validate_embedded_glb(self.glb(self.document(**kwargs)), {"label-001"})
+        # A multi-primitive mesh parses into several three.js meshes behind one
+        # glTF node, which breaks the viewer's manifest-to-mesh name matching.
+        for label, kwargs in [("multi-primitive", {"primitives": 2}), ("no primitive", {"primitives": 0}), ("point cloud", {"mode": 0}), ("line strip", {"mode": 3})]:
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError, "one triangle primitive"):
+                    validate_embedded_glb(self.glb(self.document(**kwargs)), {"label-001"})
+        for label, mutate in [
+            ("missing POSITION", lambda d: d["meshes"][0]["primitives"][0]["attributes"].clear()),
+            ("POSITION out of range", lambda d: d["meshes"][0]["primitives"][0]["attributes"].__setitem__("POSITION", 9)),
+            ("index out of range", lambda d: d["meshes"][0]["primitives"][0].__setitem__("indices", 9)),
+            ("countless accessor", lambda d: d["accessors"][0].pop("count")),
+        ]:
+            with self.subTest(label=label):
+                document = self.document()
+                mutate(document)
+                with self.assertRaisesRegex(ValueError, "accessor is missing"):
+                    validate_embedded_glb(self.glb(document), {"label-001"})
+        document = self.document()
+        document["accessors"][0]["type"] = "VEC2"
+        with self.assertRaisesRegex(ValueError, "VEC3"):
+            validate_embedded_glb(self.glb(document), {"label-001"})
+        # Sitting exactly on both browser limits must still convert.
+        on_limit = self.document(vertices=3_000_000, indices=9_000_000)
+        self.assertEqual(len(validate_embedded_glb(self.glb(on_limit), {"label-001"})["meshes"]), 1)
+        # Non-indexed geometry falls back to the vertex count for the triangle check.
+        non_indexed = self.document(vertices=299)
+        non_indexed["meshes"][0]["primitives"][0].pop("indices")
+        with self.assertRaisesRegex(ValueError, "complete triangles"):
+            validate_embedded_glb(self.glb(non_indexed), {"label-001"})
+
+    def test_rejects_payloads_over_the_browser_import_limit(self):
+        with self.assertRaisesRegex(ValueError, "150 MB"):
+            validate_embedded_glb(bytes(150 * 1024 * 1024 + 1), {"label-001"})
+
+    def test_limits_stay_equal_to_the_browser_half_in_model_ts(self):
+        """Neither half of a mirrored limit may move without the other."""
+        source = (Path(__file__).resolve().parents[1] / "src" / "model.ts").read_text(encoding="utf-8")
+        self.assertEqual([MAX_GLB_BYTES, MAX_MESH_VERTICES, MAX_MESH_INDICES], [150 * 1024 * 1024, 3_000_000, 9_000_000])
+        self.assertIn(f"byteLength > {MAX_GLB_BYTES // (1024 * 1024)} * 1024 * 1024", source)
+        self.assertIn(f"positions.count > {MAX_MESH_VERTICES:_}", source)
+        self.assertIn(f"count > {MAX_MESH_INDICES:_}", source)
+
+    def test_rejects_mesh_names_that_differ_from_the_manifest(self):
+        for label, names, expected in [
+            ("renamed", ("label-002",), {"label-001"}),
+            ("missing structure", ("label-001",), {"label-001", "label-004"}),
+            ("extra mesh", ("label-001", "label-004"), {"label-001"}),
+            ("duplicate", ("label-001", "label-001"), {"label-001"}),
+        ]:
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError, "names differ"):
+                    validate_embedded_glb(self.glb(self.document(names)), expected)
+        unnamed = self.document()
+        unnamed["nodes"][0].pop("name")
+        with self.assertRaisesRegex(ValueError, "names differ"):
+            validate_embedded_glb(self.glb(unnamed), {"label-001"})
