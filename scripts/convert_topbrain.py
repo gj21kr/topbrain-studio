@@ -30,6 +30,12 @@ RAS_MM_TO_GLTF_M = np.array(
     [[0.001, 0, 0, 0], [0, 0, 0.001, 0], [0, -0.001, 0, 0], [0, 0, 0, 1]],
     dtype=np.float64,
 )
+# The browser half of this asset boundary lives in src/model.ts: inspectGlb
+# enforces the byte limit, validateMeshData the per-mesh element counts. Both
+# halves must move together or the converter writes files the viewer refuses.
+MAX_GLB_BYTES = 150 * 1024 * 1024
+MAX_MESH_VERTICES = 3_000_000
+MAX_MESH_INDICES = 9_000_000
 SOURCE = "TopBrain 2025 MICCAI Challenge Data Release, batch 1 (2025-07-30)"
 WEBSITE = "https://topbrain2025.grand-challenge.org"
 OWNER = "University Hospital of Zurich, Department of Neurology (USZ)"
@@ -132,7 +138,15 @@ def label_mesh(
 
 
 def validate_embedded_glb(payload: bytes, expected_names: set[str]) -> dict:
-    """Check the static GLB subset accepted by the browser before writing."""
+    """Check the static GLB subset accepted by the browser before writing.
+
+    Mirrors every rejection in src/model.ts: inspectGlb (size, header, chunk,
+    URIs, extensions), readAsset (one parsed mesh per manifest structure with
+    equal names) and validateMeshData (per-mesh element counts). Index values
+    live in the binary chunk and stay the browser's check after it parses.
+    """
+    if len(payload) > MAX_GLB_BYTES:
+        raise ValueError("Generated GLB exceeds the browser's 150 MB import limit.")
     if len(payload) < 20 or struct.unpack_from("<III", payload) != (
         0x46546C67,
         2,
@@ -162,6 +176,42 @@ def validate_embedded_glb(payload: bytes, expected_names: set[str]) -> dict:
         for key in ["extensionsUsed", "extensionsRequired", "animations", "skins"]
     ):
         raise ValueError("GLB must be static and uncompressed without extensions.")
+    accessors = document.get("accessors", [])
+
+    def accessor(index, kind):
+        if isinstance(index, bool) or not isinstance(index, int):
+            raise ValueError(f"GLB mesh {kind} accessor is missing.")
+        if not 0 <= index < len(accessors):
+            raise ValueError(f"GLB mesh {kind} accessor is missing.")
+        entry = accessors[index]
+        if isinstance(entry.get("count"), bool) or not isinstance(
+            entry.get("count"), int
+        ):
+            raise ValueError(f"GLB mesh {kind} accessor is missing.")
+        return entry
+
+    for mesh in document.get("meshes", []):
+        primitives = mesh.get("primitives", [])
+        # The viewer matches manifest names against parsed three.js meshes, and a
+        # multi-primitive mesh becomes several of those behind one glTF node.
+        if len(primitives) != 1 or primitives[0].get("mode", 4) != 4:
+            raise ValueError("Each GLB mesh must hold exactly one triangle primitive.")
+        position = accessor(
+            primitives[0].get("attributes", {}).get("POSITION"), "position"
+        )
+        if position.get("type") != "VEC3" or not (
+            3 <= position["count"] <= MAX_MESH_VERTICES
+        ):
+            raise ValueError(
+                f"Each GLB mesh needs 3-{MAX_MESH_VERTICES} VEC3 vertices to stay importable."
+            )
+        elements = position["count"]
+        if "indices" in primitives[0]:
+            elements = accessor(primitives[0]["indices"], "index")["count"]
+        if elements < 3 or elements % 3 or elements > MAX_MESH_INDICES:
+            raise ValueError(
+                f"Each GLB mesh needs complete triangles within {MAX_MESH_INDICES} indices."
+            )
     names = [node.get("name") for node in document.get("nodes", []) if "mesh" in node]
     if len(names) != len(set(names)) or set(names) != expected_names:
         raise ValueError("GLB mesh node names differ from manifest structures.")
@@ -449,8 +499,6 @@ def convert(
     )
     payload = scene.export(file_type="glb", include_normals=True)
     validate_embedded_glb(payload, {entry["meshName"] for entry in structures})
-    if len(payload) > 150 * 1024 * 1024:
-        raise ValueError("Generated GLB exceeds the browser's 150 MB import limit.")
     dependencies = {
         name: importlib.metadata.version(name)
         for name in ["numpy", "nibabel", "scikit-image", "trimesh"]
