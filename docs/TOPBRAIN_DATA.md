@@ -144,6 +144,15 @@ external/data URI resources, compression extensions, skins or animations. The
 converter validates that subset and the complete node-to-manifest correspondence
 before writing. It rejects exports larger than the viewer's 150 MiB limit.
 
+The chunks must tile the file exactly: a JSON chunk, an optional BIN chunk and
+nothing after it, so trailing bytes and extra chunks are refused rather than
+silently ignored. The converter and the viewer both check that layout. The
+converter additionally proves that every buffer view fits its buffer and every
+accessor's bytes fit its view, which turns the per-mesh element counts from a
+claim into something backed by bytes that exist. The viewer does not repeat
+that walk because its glTF loader re-derives the same bounds while parsing;
+index *values* stay the loader's check either way.
+
 All structures receive their own rigid explode offset in the manifest; explosion
 is an educational interaction and changes anatomical position. Reset must restore
 the original coordinates. No dimensions or pathology should be assessed from

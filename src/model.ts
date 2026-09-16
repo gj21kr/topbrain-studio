@@ -65,6 +65,15 @@ export function inspectGlb(buffer: ArrayBuffer): void {
   if (view.getUint32(0, true) !== 0x46546c67 || view.getUint32(4, true) !== 2 || view.getUint32(8, true) !== buffer.byteLength) throw new Error('Expected a valid GLB 2.0 file.');
   const length = view.getUint32(12, true);
   if (view.getUint32(16, true) !== 0x4e4f534a || length % 4 || 20 + length > buffer.byteLength) throw new Error('Invalid GLB JSON chunk.');
+  // The chunks must tile the file exactly: a JSON chunk, an optional BIN chunk
+  // and nothing after it. Trailing bytes and extra chunks are what a reader
+  // silently ignores, so they are refused rather than handed to the loader.
+  const next = 20 + length;
+  if (next !== buffer.byteLength) {
+    if (next + 8 > buffer.byteLength) throw new Error('Invalid GLB binary chunk.');
+    const binary = view.getUint32(next, true);
+    if (view.getUint32(next + 4, true) !== 0x004e4942 || binary % 4 || next + 8 + binary !== buffer.byteLength) throw new Error('Invalid GLB binary chunk.');
+  }
   const json = JSON.parse(new TextDecoder().decode(buffer.slice(20, 20 + length)));
   const inspect = (value: unknown): void => {
     if (Array.isArray(value)) value.forEach(inspect);

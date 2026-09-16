@@ -9,7 +9,7 @@ import nibabel as nib
 import numpy as np
 import trimesh
 
-from scripts.convert_topbrain import MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, anatomy_explode, anatomy_side, convert, label_mesh, manifest_schema_version, read_labelmap, validate_embedded_glb, voxel_to_gltf_transform
+from scripts.convert_topbrain import MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, anatomy_explode, anatomy_side, convert, label_mesh, manifest_schema_version, read_labelmap, validate_binary_layout, validate_embedded_glb, voxel_to_gltf_transform
 
 
 class ConverterTests(unittest.TestCase):
@@ -145,21 +145,39 @@ class EmbeddedGlbTests(unittest.TestCase):
     validateMeshData. A limit that moves on one side must move on both.
     """
 
-    def glb(self, document):
+    def glb(self, document, binary=None):
+        """Build a GLB whose BIN chunk actually carries the declared buffer."""
         raw = json.dumps(document).encode("utf-8")
         padded = raw + b" " * (-len(raw) % 4)
-        header = struct.pack("<IIIII", 0x46546C67, 2, 20 + len(padded), len(padded), 0x4E4F534A)
-        return header + padded
+        if binary is None:
+            declared = document.get("buffers") or [{}]
+            length = declared[0].get("byteLength", 0)
+            binary = bytes(length + (-length % 4))
+        chunks = struct.pack("<II", len(padded), 0x4E4F534A) + padded
+        if binary:
+            chunks += struct.pack("<II", len(binary), 0x004E4942) + binary
+        return struct.pack("<III", 0x46546C67, 2, 12 + len(chunks)) + chunks
 
     def document(self, names=("label-001",), vertices=300, indices=300, primitives=1, mode=4):
-        accessors, meshes, nodes = [], [], []
+        accessors, views, meshes, nodes, offset = [], [], [], [], 0
         for index, name in enumerate(names):
-            accessors.append({"type": "VEC3", "componentType": 5126, "count": vertices})
-            accessors.append({"type": "SCALAR", "componentType": 5125, "count": indices})
+            views.append({"buffer": 0, "byteOffset": offset, "byteLength": vertices * 12})
+            offset += vertices * 12
+            views.append({"buffer": 0, "byteOffset": offset, "byteLength": indices * 4})
+            offset += indices * 4
+            accessors.append({"bufferView": 2 * index, "type": "VEC3", "componentType": 5126, "count": vertices})
+            accessors.append({"bufferView": 2 * index + 1, "type": "SCALAR", "componentType": 5125, "count": indices})
             primitive = {"attributes": {"POSITION": 2 * index}, "indices": 2 * index + 1, "mode": mode}
             meshes.append({"primitives": [dict(primitive) for _ in range(primitives)]})
             nodes.append({"name": name, "mesh": index})
-        return {"asset": {"version": "2.0"}, "accessors": accessors, "meshes": meshes, "nodes": nodes}
+        return {
+            "asset": {"version": "2.0"},
+            "buffers": [{"byteLength": offset}] if offset else [],
+            "bufferViews": views,
+            "accessors": accessors,
+            "meshes": meshes,
+            "nodes": nodes,
+        }
 
     def test_accepts_the_static_subset_and_blocks_external_resources(self):
         self.assertEqual(len(validate_embedded_glb(self.glb(self.document()), {"label-001"})["nodes"]), 1)
@@ -237,6 +255,60 @@ class EmbeddedGlbTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "complete triangles"):
             validate_embedded_glb(self.glb(non_indexed), {"label-001"})
 
+    def test_rejects_a_binary_chunk_that_does_not_tile_the_file(self):
+        """Both halves stopped at the JSON chunk, so anything after it was ignored."""
+        payload = self.glb(self.document())
+        start = 20 + struct.unpack_from("<I", payload, 12)[0]
+        retotal = lambda data: data[:8] + struct.pack("<I", len(data)) + data[12:]
+        for label, broken in [
+            ("wrong chunk type", payload[:start + 4] + struct.pack("<I", 0x4E4F534A) + payload[start + 8:]),
+            ("unaligned length", payload[:start] + struct.pack("<I", 13) + payload[start + 4:]),
+            ("length past the file", payload[:start] + struct.pack("<I", 1 << 20) + payload[start + 4:]),
+            ("truncated chunk header", retotal(payload[:start + 4])),
+            ("trailing bytes", retotal(payload + b"\0\0\0\0")),
+            ("a third chunk", retotal(payload + struct.pack("<II", 0, 0x4E4F534A))),
+        ]:
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError, "binary chunk"):
+                    validate_embedded_glb(broken, {"label-001"})
+
+    def test_binary_layout_proves_the_bytes_behind_every_accessor_exist(self):
+        base = self.document()
+        length = base["buffers"][0]["byteLength"]
+        validate_binary_layout(base, length)
+        # The BIN chunk is padded to 4 bytes, so it may exceed the buffer by 3.
+        validate_binary_layout(base, length + 3)
+        for label, padding in [("chunk shorter than its buffer", -4), ("more than padding", 4)]:
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError, "binary chunk that carries it"):
+                    validate_binary_layout(base, length + padding)
+        for label, mutate, message in [
+            ("two buffers", lambda d: d["buffers"].append({"byteLength": 8}), "single binary buffer"),
+            ("view past the buffer", lambda d: d["bufferViews"][1].__setitem__("byteLength", length), "outside the binary chunk"),
+            ("view of a second buffer", lambda d: d["bufferViews"][0].__setitem__("buffer", 1), "not embedded"),
+            ("accessor without a view", lambda d: d["accessors"][0].pop("bufferView"), "no buffer view"),
+            ("accessor view out of range", lambda d: d["accessors"][0].__setitem__("bufferView", 9), "no buffer view"),
+            ("unknown component type", lambda d: d["accessors"][0].__setitem__("componentType", 5124), "unknown component type"),
+            ("unknown element type", lambda d: d["accessors"][0].__setitem__("type", "VEC9"), "unknown component type"),
+            ("count past the view", lambda d: d["accessors"][0].__setitem__("count", 301), "past the end"),
+            ("offset past the view", lambda d: d["accessors"][0].__setitem__("byteOffset", 12), "past the end"),
+        ]:
+            with self.subTest(label=label):
+                document = json.loads(json.dumps(base))
+                mutate(document)
+                with self.assertRaisesRegex(ValueError, message):
+                    validate_binary_layout(document, length)
+        # An interleaved view needs more room for the same element count.
+        strided = json.loads(json.dumps(base))
+        strided["bufferViews"][0]["byteStride"] = 24
+        with self.assertRaisesRegex(ValueError, "past the end"):
+            validate_binary_layout(strided, length)
+        # And validate_embedded_glb must actually run all of this, not just own it.
+        wired = self.document()
+        wired["bufferViews"][0]["byteLength"] = wired["buffers"][0]["byteLength"] + 4
+        with self.assertRaisesRegex(ValueError, "outside the binary chunk"):
+            validate_embedded_glb(self.glb(wired), {"label-001"})
+
     def test_rejects_payloads_over_the_browser_import_limit(self):
         with self.assertRaisesRegex(ValueError, "150 MB"):
             validate_embedded_glb(bytes(150 * 1024 * 1024 + 1), {"label-001"})
@@ -248,6 +320,10 @@ class EmbeddedGlbTests(unittest.TestCase):
         self.assertIn(f"byteLength > {MAX_GLB_BYTES // (1024 * 1024)} * 1024 * 1024", source)
         self.assertIn(f"positions.count > {MAX_MESH_VERTICES:_}", source)
         self.assertIn(f"count > {MAX_MESH_INDICES:_}", source)
+        # The chunk walk is mirrored too; the byte-level layout below it is not,
+        # because the browser's loader re-derives it while parsing.
+        self.assertIn("!== 0x004e4942", source)
+        self.assertIn("next + 8 + binary !== buffer.byteLength", source)
 
     def test_rejects_mesh_names_that_differ_from_the_manifest(self):
         for label, names, expected in [
