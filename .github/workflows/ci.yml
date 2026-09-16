@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  converter:
+    name: converter (python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor requirements-data.txt can actually satisfy (numpy 2.5.3
+        # requires >=3.12) and the version the file records as verified.
+        # scikit-image 0.26.0 ships no wheel above cp314, so 3.14 is the ceiling.
+        python: ["3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements-data.txt
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r requirements-data.txt
+      # EmbeddedGlbTests reads src/model.ts to keep the browser import limits
+      # equal on both sides, so this job needs the full checkout, not just tests.
+      - run: python -m unittest tests.test_converter tests.test_total_masks --verbose
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
