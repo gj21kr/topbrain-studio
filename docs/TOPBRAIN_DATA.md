@@ -102,8 +102,12 @@ coordinates. Assets converted before this rule carry `[0, 0, 0]` for anatomy
 and must be reconverted to separate.
 
 Combined exports use schema version 2 with per-structure `source`,
-`defaultVisible` and `defaultOpacity`. Legacy schema-1 vessel assets remain
-supported. Vessels start visible; added anatomy starts hidden. Brain and skull
+`defaultVisible` and `defaultOpacity`. Schema 2 guarantees exactly one thing:
+every structure names its own source. The viewer falls back to the manifest
+source for a structure without one, which in a combined export would attribute
+a TotalSegmentator prediction to TopBrain, so both the converter and the viewer
+reject a schema-2 manifest that breaks this. Legacy schema-1 vessel assets
+carry no per-structure source and remain supported. Vessels start visible; added anatomy starts hidden. Brain and skull
 default to 20% base structure opacity, other anatomy to 65%. The surrounding
 opacity control additionally multiplies the opacity of unselected structures
 (initially 85%). Expand **Group visibility & opacity** for group controls. Group and

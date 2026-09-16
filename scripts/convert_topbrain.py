@@ -30,9 +30,6 @@ RAS_MM_TO_GLTF_M = np.array(
     [[0.001, 0, 0, 0], [0, 0, 0.001, 0], [0, -0.001, 0, 0], [0, 0, 0, 1]],
     dtype=np.float64,
 )
-# The browser half of this asset boundary lives in src/model.ts: inspectGlb
-# enforces the byte limit, validateMeshData the per-mesh element counts. Both
-# halves must move together or the converter writes files the viewer refuses.
 # The ITK-SNAP label map carries no group column, so the only signal for the
 # arteries/veins split is the release's own label numbering: batch 1 numbers
 # arteries 1-34 and veins/sinuses above that. Re-confirm against the label map
@@ -41,6 +38,9 @@ LAST_ARTERY_LABEL = 34
 ARTERY_GROUP = "Arteries"
 VEIN_GROUP = "Veins and sinuses"
 VESSEL_GROUPS = (ARTERY_GROUP, VEIN_GROUP)
+# The browser half of this asset boundary lives in src/model.ts: inspectGlb
+# enforces the byte limit, validateMeshData the per-mesh element counts. Both
+# halves must move together or the converter writes files the viewer refuses.
 MAX_GLB_BYTES = 150 * 1024 * 1024
 MAX_MESH_VERTICES = 3_000_000
 MAX_MESH_INDICES = 9_000_000
@@ -413,6 +413,26 @@ def append_total_masks(
     }
 
 
+def manifest_schema_version(structures: list[dict], combined: bool) -> int:
+    """Pick the schema version and enforce the one thing that number promises.
+
+    Schema 2 marks a combined export, and its promise to the viewer is that
+    every structure names its own source. src/model.ts falls back to the
+    manifest source for a structure that has none, which in a combined export
+    would show a TotalSegmentator prediction under the TopBrain attribution.
+    validateManifest rejects such a manifest; checking here as well means one is
+    never written. Schema 1 vessel-only exports carry no per-structure source.
+    """
+    if not combined:
+        return 1
+    missing = [entry["id"] for entry in structures if not entry.get("source")]
+    if missing:
+        raise ValueError(
+            f"Schema 2 requires an explicit source on every structure; {missing[0]} has none."
+        )
+    return 2
+
+
 def convert(
     input_path: Path,
     labelmap_path: Path,
@@ -526,7 +546,7 @@ def convert(
         for name in ["numpy", "nibabel", "scikit-image", "trimesh"]
     }
     manifest = {
-        "schemaVersion": 1,
+        "schemaVersion": manifest_schema_version(structures, total_metadata is not None),
         "title": "TopBrain · real CTA vessel anatomy",
         "source": f"{OWNER}; {SOURCE}; {WEBSITE}",
         "license": "Non-commercial use with source attribution. Commercial use requires prior permission of the data owner (USZ).",
@@ -584,7 +604,6 @@ def convert(
         },
     }
     if total_metadata is not None:
-        manifest["schemaVersion"] = 2
         manifest["title"] = "TopBrain · CTA vessels and TotalSegmentator anatomy"
         manifest["source"] += "; local TotalSegmentator predictions"
         manifest["provenance"] = (
