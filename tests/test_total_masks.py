@@ -61,6 +61,11 @@ class TotalMaskTests(unittest.TestCase):
         )
         self.assertEqual(result["schemaVersion"], 2)
         self.assertEqual(len(result["structures"]), 3)
+        # Schema 2's promise: nothing falls back to the TopBrain manifest source.
+        self.assertEqual(
+            [entry["source"] for entry in result["structures"]],
+            ["TopBrain", "TotalSegmentator", "TotalSegmentator"],
+        )
         scene = trimesh.load(out.with_suffix(".glb"), force="scene", process=False)
         vessel = scene.geometry["label-001"]
         for entry in result["structures"][1:]:
