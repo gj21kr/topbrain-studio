@@ -42,6 +42,17 @@ test('accepts legacy manifests and version 2 per-structure provenance and defaul
   for (const schemaVersion of [0, 3, '1', '2']) assert.throws(() => validateManifest({ ...demo, schemaVersion }), /schemaVersion/);
 });
 
+test('schema 2 requires every structure to name its own source', () => {
+  const anatomy = { ...demo.structures[0], source: 'TotalSegmentator' }, vessel = { ...demo.structures[1], source: 'TopBrain' };
+  assert.equal(validateManifest({ ...demo, schemaVersion: 2, structures: [anatomy, vessel] }).structures.length, 2);
+  // Without one the viewer shows the manifest source, attributing a
+  // TotalSegmentator prediction to TopBrain.
+  assert.throws(() => validateManifest({ ...demo, schemaVersion: 2 }), /source on every structure/);
+  assert.throws(() => validateManifest({ ...demo, schemaVersion: 2, structures: [anatomy, demo.structures[1]] }), /source on every structure/);
+  // Schema 1 vessel assets carry no per-structure source and stay valid.
+  assert.doesNotThrow(() => validateManifest(demo));
+});
+
 test('rejects malformed source and display defaults without coercing values', () => {
   for (const source of ['', ' ', 2]) assert.throws(() => validateManifest({ ...demo, structures: [{ ...demo.structures[0], source }] }), /source/);
   for (const defaultVisible of ['false', 0, null]) assert.throws(() => validateManifest({ ...demo, structures: [{ ...demo.structures[0], defaultVisible }] }), /defaultVisible/);

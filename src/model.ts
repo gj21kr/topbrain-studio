@@ -35,6 +35,10 @@ export function validateManifest(value: unknown): Manifest {
     if (!text(s.color) || !/^#[0-9a-f]{6}$/i.test(s.color) || !vector(s.explode)) throw new Error('Invalid structure color or explode vector.');
     if (s.label !== undefined && (!Number.isSafeInteger(s.label) || Number(s.label) <= 0)) throw new Error('Invalid label ID.');
     if (s.source !== undefined && !text(s.source)) throw new Error('Invalid structure source.');
+    // Schema 2 is a combined export. App.tsx renders `s.source ?? manifest.source`,
+    // so a structure without its own source would be shown under the TopBrain
+    // attribution the combined manifest source leads with.
+    if (value.schemaVersion === 2 && s.source === undefined) throw new Error('Schema 2 requires an explicit source on every structure.');
     if (s.defaultVisible !== undefined && typeof s.defaultVisible !== 'boolean') throw new Error('Invalid defaultVisible.');
     if (s.defaultOpacity !== undefined && (typeof s.defaultOpacity !== 'number' || !Number.isFinite(s.defaultOpacity) || s.defaultOpacity < 0 || s.defaultOpacity > 1)) throw new Error('Invalid defaultOpacity: expected 0–1.');
     ids.add(s.id as string); names.add(s.meshName as string);

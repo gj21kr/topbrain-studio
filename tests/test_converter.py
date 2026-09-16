@@ -9,7 +9,7 @@ import nibabel as nib
 import numpy as np
 import trimesh
 
-from scripts.convert_topbrain import MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, anatomy_explode, anatomy_side, convert, label_mesh, read_labelmap, validate_embedded_glb, voxel_to_gltf_transform
+from scripts.convert_topbrain import MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, anatomy_explode, anatomy_side, convert, label_mesh, manifest_schema_version, read_labelmap, validate_embedded_glb, voxel_to_gltf_transform
 
 
 class ConverterTests(unittest.TestCase):
@@ -328,3 +328,34 @@ class SharedDerivationTests(unittest.TestCase):
         self.assertEqual(anatomy_explode("trachea", "Other anatomy", "Not side-specific"), [0.0, 0.0, -0.04])
         for vector in [*verticals.values(), anatomy_explode("trachea", "Other anatomy", "Not side-specific")]:
             self.assertNotEqual(vector, [0.0, 0.0, 0.0], "every structure must separate")
+
+
+class SchemaVersionTests(unittest.TestCase):
+    """The version number promises one thing that both halves now enforce.
+
+    A structure without its own source falls back to the manifest source in the
+    viewer, which in a combined export reads as the TopBrain attribution.
+    """
+
+    def test_vessel_only_export_stays_schema_1_without_per_structure_sources(self):
+        self.assertEqual(manifest_schema_version([{"id": "label-001"}], False), 1)
+        self.assertEqual(manifest_schema_version([{"id": "label-001", "source": "TopBrain"}], False), 1)
+
+    def test_combined_export_is_schema_2_only_when_every_structure_names_a_source(self):
+        combined = [
+            {"id": "label-001", "source": "TopBrain"},
+            {"id": "total-brain", "source": "TotalSegmentator"},
+        ]
+        self.assertEqual(manifest_schema_version(combined, True), 2)
+        for label, broken in [("absent", {}), ("null", {"source": None}), ("empty", {"source": ""})]:
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError, "total-brain has none"):
+                    manifest_schema_version([combined[0], {"id": "total-brain", **broken}], True)
+        # The vessel half is held to the same promise, not just the added anatomy.
+        with self.assertRaisesRegex(ValueError, "label-001 has none"):
+            manifest_schema_version([{"id": "label-001"}, combined[1]], True)
+
+    def test_the_promise_is_mirrored_in_the_browser_half(self):
+        source = (Path(__file__).resolve().parents[1] / "src" / "model.ts").read_text(encoding="utf-8")
+        self.assertIn("value.schemaVersion === 2 && s.source === undefined", source)
+        self.assertIn("Schema 2 requires an explicit source on every structure.", source)
