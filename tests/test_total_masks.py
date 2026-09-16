@@ -101,8 +101,9 @@ class TotalMaskTests(unittest.TestCase):
         structures = self.append()[1]
         explode = {entry["sourceShortName"]: entry["explode"] for entry in structures}
         self.assertEqual(set(explode), set(names))
-        # Midline structures separate along the superior/inferior axis by group;
-        # sided structures also move laterally with the TopBrain vessel sign.
+        # Grouped structures part along the superior/inferior axis; a midline
+        # structure with no group of its own moves anteriorly instead (trachea).
+        # Sided structures also move laterally with the TopBrain vessel sign.
         self.assertEqual(explode["brain"], [0, 0.04, 0])
         self.assertEqual(explode["skull"], [0, 0.06, 0])
         self.assertEqual(explode["spinal_cord"], [0, -0.02, 0])

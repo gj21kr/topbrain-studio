@@ -38,6 +38,9 @@ RAS_MM_TO_GLTF_M = np.array(
 # arteries 1-34 and veins/sinuses above that. Re-confirm against the label map
 # before converting a release that renumbers labels.
 LAST_ARTERY_LABEL = 34
+ARTERY_GROUP = "Arteries"
+VEIN_GROUP = "Veins and sinuses"
+VESSEL_GROUPS = (ARTERY_GROUP, VEIN_GROUP)
 MAX_GLB_BYTES = 150 * 1024 * 1024
 MAX_MESH_VERTICES = 3_000_000
 MAX_MESH_INDICES = 9_000_000
@@ -223,14 +226,40 @@ def validate_embedded_glb(payload: bytes, expected_names: set[str]) -> dict:
     return document
 
 
+def anatomy_side(name: str) -> str:
+    """Laterality from either naming convention the two import paths carry.
+
+    TopBrain label short names mark the side with an R-/L- prefix, while
+    TotalSegmentator mask keys use an _r/_right/_l/_left suffix. Mask keys are
+    validated against [A-Za-z][A-Za-z0-9_]* and so can never hold a hyphen,
+    so reading both conventions here cannot make one path answer for the other.
+    Casing is normalised here rather than relied on from the caller.
+    """
+    lowered = name.lower()
+    if lowered.startswith("r-") or lowered.endswith(("_r", "_right")):
+        return "Right"
+    if lowered.startswith("l-") or lowered.endswith(("_l", "_left")):
+        return "Left"
+    return "Not side-specific"
+
+
 def anatomy_explode(key: str, group: str, side: str) -> list[float]:
     """Rigid separation vector in glTF meters (x Right+, y Superior+, z Posterior+).
 
-    Sided structures move laterally with the same sign as TopBrain vessels.
-    Midline structures separate along the vertical axis by group so nested
-    anatomy (skull, brain, vessels, spinal cord, vertebral column) parts.
+    Sided structures move laterally with one sign for both import paths. The
+    remaining component parts nested anatomy by group: skull highest, then brain
+    and vessels above the origin, spinal cord and the rest of the bones below.
+    A midline structure with no group of its own moves anteriorly instead,
+    because a vertical move would keep it inside whatever encloses it.
+
+    `key` is the TotalSegmentator mask key or the TopBrain label short name;
+    only the skull needs to be recognised by name rather than by group.
     """
     lateral = 0.04 if side == "Right" else -0.04 if side == "Left" else 0.0
+    # Vessels answer from the group alone, so no label short name can reach the
+    # skull special case below.
+    if group in VESSEL_GROUPS:
+        return [lateral, 0.02, 0.0]
     if group == "Brain":
         return [lateral, 0.04, 0.0]
     if key == "skull":
@@ -347,13 +376,7 @@ def append_total_masks(
             )
         )
         scene.add_geometry(mesh, node_name=node_name, geom_name=node_name)
-        side = (
-            "Left"
-            if key.endswith(("_l", "_left"))
-            else "Right"
-            if key.endswith(("_r", "_right"))
-            else "Not side-specific"
-        )
+        side = anatomy_side(key)
         structures.append(
             {
                 "id": node_name,
@@ -464,15 +487,9 @@ def convert(
         )
         scene.add_geometry(mesh, node_name=node_name, geom_name=node_name)
         short_name = entry["shortName"]
-        side = (
-            "Right"
-            if short_name.startswith("R-")
-            else "Left"
-            if short_name.startswith("L-")
-            else "Not side-specific"
-        )
-        group = "Arteries" if value <= LAST_ARTERY_LABEL else "Veins and sinuses"
-        explode = [0.04 if side == "Right" else -0.04 if side == "Left" else 0, 0.02, 0]
+        side = anatomy_side(short_name)
+        group = ARTERY_GROUP if value <= LAST_ARTERY_LABEL else VEIN_GROUP
+        explode = anatomy_explode(short_name, group, side)
         structures.append(
             {
                 "id": node_name,
