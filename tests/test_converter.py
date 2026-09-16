@@ -9,7 +9,7 @@ import nibabel as nib
 import numpy as np
 import trimesh
 
-from scripts.convert_topbrain import MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, convert, label_mesh, read_labelmap, validate_embedded_glb, voxel_to_gltf_transform
+from scripts.convert_topbrain import MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, anatomy_explode, anatomy_side, convert, label_mesh, read_labelmap, validate_embedded_glb, voxel_to_gltf_transform
 
 
 class ConverterTests(unittest.TestCase):
@@ -263,3 +263,68 @@ class EmbeddedGlbTests(unittest.TestCase):
         unnamed["nodes"][0].pop("name")
         with self.assertRaisesRegex(ValueError, "names differ"):
             validate_embedded_glb(self.glb(unnamed), {"label-001"})
+
+
+class SharedDerivationTests(unittest.TestCase):
+    """Laterality and separation now have one implementation for both paths.
+
+    TopBrain labels and TotalSegmentator masks name their sides differently, so
+    these used to be two rules with a shared vocabulary and no shared code.
+    """
+
+    def test_side_reads_both_naming_conventions_and_normalises_casing(self):
+        for name in ["R-ICA", "r-ica", "R-TS", "kidney_r", "KIDNEY_R", "common_carotid_artery_right"]:
+            with self.subTest(name=name):
+                self.assertEqual(anatomy_side(name), "Right")
+        for name in ["L-MCA", "l-mca", "L-VA", "kidney_l", "clavicula_left", "lung_upper_lobe_l"]:
+            with self.subTest(name=name):
+                self.assertEqual(anatomy_side(name), "Left")
+        for name in ["BA", "SSS", "AComA", "Torcula", "brain", "skull", "trachea", "aorta", "spinal_cord", "vertebrae_C3"]:
+            with self.subTest(name=name):
+                self.assertEqual(anatomy_side(name), "Not side-specific")
+
+    def test_side_never_contradicts_the_prefix_rule_it_replaced(self):
+        """Reading both conventions may resolve a name, never re-answer one."""
+        prefix_only = lambda n: "Right" if n.startswith("R-") else "Left" if n.startswith("L-") else None
+        corpus = ["BA", "R-ICA", "L-MCA", "SSS", "AComA", "Torcula", "R-TS", "L-VA", "ICA_R", "sinus_left", "r-ica"]
+        widened = []
+        for name in corpus:
+            old, unified = prefix_only(name), anatomy_side(name)
+            if old is not None:
+                self.assertEqual(unified, old, f"{name} lost or changed its side")
+            elif unified != "Not side-specific":
+                widened.append(name)
+        # A mask key can never hold a hyphen, so only label names widen here.
+        self.assertEqual(widened, ["ICA_R", "sinus_left", "r-ica"])
+
+    def test_explode_shares_one_lateral_sign_across_both_import_paths(self):
+        for side, expected in [("Right", 0.04), ("Left", -0.04), ("Not side-specific", 0.0)]:
+            with self.subTest(side=side):
+                vessel = anatomy_explode("R-ICA", "Arteries", side)
+                vein = anatomy_explode("SSS", "Veins and sinuses", side)
+                anatomy = anatomy_explode("kidney_r", "Other anatomy", side)
+                bone = anatomy_explode("rib_left_4", "Bones", side)
+                for vector in [vessel, vein, anatomy, bone]:
+                    self.assertEqual(vector[0], expected)
+                # Vessels keep the vector convert() used to build inline.
+                self.assertEqual(vessel, [expected, 0.02, 0.0])
+                self.assertEqual(vein, [expected, 0.02, 0.0])
+
+    def test_explode_parts_nested_groups_along_distinct_offsets(self):
+        verticals = {
+            "skull": anatomy_explode("skull", "Bones", "Not side-specific"),
+            "brain": anatomy_explode("brain", "Brain", "Not side-specific"),
+            "vessel": anatomy_explode("BA", "Arteries", "Not side-specific"),
+            "cord": anatomy_explode("spinal_cord", "Spinal cord", "Not side-specific"),
+            "bone": anatomy_explode("vertebrae_C3", "Bones", "Not side-specific"),
+        }
+        self.assertEqual([v[1] for v in verticals.values()], [0.06, 0.04, 0.02, -0.02, -0.04])
+        self.assertEqual(len({tuple(v) for v in verticals.values()}), len(verticals))
+        # A vessel answers from its group alone, so no label short name can
+        # reach the skull special case that sits below it.
+        self.assertEqual(anatomy_explode("skull", "Arteries", "Not side-specific"), [0.0, 0.02, 0.0])
+        self.assertEqual(anatomy_explode("skull", "Bones", "Not side-specific"), [0.0, 0.06, 0.0])
+        # An ungrouped midline structure moves anteriorly, not vertically.
+        self.assertEqual(anatomy_explode("trachea", "Other anatomy", "Not side-specific"), [0.0, 0.0, -0.04])
+        for vector in [*verticals.values(), anatomy_explode("trachea", "Other anatomy", "Not side-specific")]:
+            self.assertNotEqual(vector, [0.0, 0.0, 0.0], "every structure must separate")
