@@ -129,7 +129,11 @@ do not extend the source field of view or constitute a complete anatomy atlas.
 6. Export one mesh node named `label-###` per present label, matching manifest
    `id` and `meshName`. Label IDs, names and colors follow the local label map.
    No smoothing or decimation is applied. Labels absent from the volume are not
-   synthesized. Missing mappings fail conversion.
+   synthesized. Missing mappings fail conversion. Structures are grouped as
+   `Arteries` up to label `LAST_ARTERY_LABEL` (34 in batch 1) and
+   `Veins and sinuses` above it, because the ITK-SNAP label map has no group
+   column. Re-confirm that boundary against the label map of any release that
+   renumbers labels.
 
 The GLB includes geometry, normals and solid-color PBR materials. It has no
 external/data URI resources, compression extensions, skins or animations. The

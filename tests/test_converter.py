@@ -105,6 +105,27 @@ class ConverterTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "no mapping"):
                 convert(source, labelmap, license_path, output, fullnames)
 
+    def test_label_groups_split_arteries_from_veins_at_the_release_boundary(self):
+        """Both sides of the grouping boundary, which drives the viewer's filters."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            labelmap = root / "labelmap.txt"
+            labelmap.write_text('34 255 0 0 1 1 1 "L-PCA"\n35 0 0 255 1 1 1 "SSS"\n', encoding="utf-8")
+            license_path = root / "License.txt"
+            license_path.write_text("non-commercial use; commercial permission required", encoding="utf-8")
+            volume = np.zeros((5, 5, 5), dtype=np.uint8)
+            volume[1, 1, 1] = 34
+            volume[3, 3, 3] = 35
+            image = nib.Nifti1Image(volume, np.eye(4))
+            image.header.set_xyzt_units("mm")
+            source = root / "case.nii.gz"
+            nib.save(image, source)
+            manifest = convert(source, labelmap, license_path, root / "model")
+            grouped = {entry["label"]: entry["group"] for entry in manifest["structures"]}
+            self.assertEqual(grouped, {34: "Arteries", 35: "Veins and sinuses"})
+            sided = {entry["label"]: entry["side"] for entry in manifest["structures"]}
+            self.assertEqual(sided, {34: "Left", 35: "Not side-specific"})
+
     def test_label_map_rejects_duplicate_labels(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "labels.txt"
