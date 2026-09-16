@@ -145,13 +145,68 @@ def label_mesh(
     }
 
 
+# glTF 2.0 accessor element sizes, needed to prove an accessor's bytes exist.
+COMPONENT_BYTES = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4}
+TYPE_COMPONENTS = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT2": 4, "MAT3": 9, "MAT4": 16}
+
+
+def _size(value, default=None):
+    """A JSON number that is a usable byte count, never a bool or a float."""
+    if value is None and default is not None:
+        return default
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError("GLB binary layout uses a non-integer size.")
+    return value
+
+
+def validate_binary_layout(document: dict, binary_length: int) -> None:
+    """Prove every accessor's bytes exist inside the GLB's binary chunk.
+
+    validate_embedded_glb already checks that per-mesh element counts stay
+    inside the browser's limits, but a count is only a claim until the bytes
+    behind it are shown to exist. An embedded GLB references no URIs, so all of
+    them live in the single BIN chunk. Index *values* are still the browser's
+    check after it parses; this is about extent, not content.
+    """
+    buffers = document.get("buffers", [])
+    if len(buffers) > 1:
+        raise ValueError("An embedded GLB must hold a single binary buffer.")
+    buffer_length = _size(buffers[0].get("byteLength")) if buffers else 0
+    # The BIN chunk is padded to a 4-byte boundary, so it may run up to 3 bytes
+    # past the buffer it carries, but never short of it.
+    if buffers and not 0 <= binary_length - buffer_length <= 3:
+        raise ValueError("GLB buffer does not match the binary chunk that carries it.")
+    views = document.get("bufferViews", [])
+    for view in views:
+        if _size(view.get("buffer"), 0) != 0:
+            raise ValueError("GLB buffer view references a buffer that is not embedded.")
+        length = _size(view.get("byteLength"))
+        if _size(view.get("byteOffset"), 0) + length > buffer_length:
+            raise ValueError("GLB buffer view falls outside the binary chunk.")
+    for accessor in document.get("accessors", []):
+        index = accessor.get("bufferView")
+        if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(views):
+            raise ValueError("GLB accessor has no buffer view inside this file.")
+        component = COMPONENT_BYTES.get(accessor.get("componentType"))
+        components = TYPE_COMPONENTS.get(accessor.get("type"))
+        if component is None or components is None:
+            raise ValueError("GLB accessor uses an unknown component type.")
+        count, element = _size(accessor.get("count")), component * components
+        stride = views[index].get("byteStride")
+        span = (count - 1) * _size(stride) + element if stride else count * element
+        if count and _size(accessor.get("byteOffset"), 0) + span > _size(views[index].get("byteLength")):
+            raise ValueError("GLB accessor reads past the end of its buffer view.")
+
+
 def validate_embedded_glb(payload: bytes, expected_names: set[str]) -> dict:
     """Check the static GLB subset accepted by the browser before writing.
 
     Mirrors every rejection in src/model.ts: inspectGlb (size, header, chunk,
     URIs, extensions), readAsset (one parsed mesh per manifest structure with
-    equal names) and validateMeshData (per-mesh element counts). Index values
-    live in the binary chunk and stay the browser's check after it parses.
+    equal names) and validateMeshData (per-mesh element counts), plus the chunk
+    layout the browser half also checks. validate_binary_layout then proves the
+    bytes behind those counts exist. Index *values* live in the binary chunk and
+    stay the browser's check after it parses.
     """
     if len(payload) > MAX_GLB_BYTES:
         raise ValueError("Generated GLB exceeds the browser's 150 MB import limit.")
@@ -164,6 +219,20 @@ def validate_embedded_glb(payload: bytes, expected_names: set[str]) -> dict:
     chunk_length, chunk_type = struct.unpack_from("<II", payload, 12)
     if chunk_type != 0x4E4F534A or chunk_length % 4 or 20 + chunk_length > len(payload):
         raise ValueError("Invalid GLB JSON chunk.")
+    # The chunks must tile the file exactly: a JSON chunk, an optional BIN chunk
+    # and nothing after it. Trailing bytes and extra chunks are what a reader
+    # silently ignores, so they are rejected rather than carried in the asset.
+    binary_length, offset = 0, 20 + chunk_length
+    if offset != len(payload):
+        if offset + 8 > len(payload):
+            raise ValueError("Invalid GLB binary chunk.")
+        binary_length, binary_type = struct.unpack_from("<II", payload, offset)
+        if (
+            binary_type != 0x004E4942
+            or binary_length % 4
+            or offset + 8 + binary_length != len(payload)
+        ):
+            raise ValueError("Invalid GLB binary chunk.")
     document = json.loads(payload[20 : 20 + chunk_length])
 
     def inspect(value):
@@ -223,6 +292,7 @@ def validate_embedded_glb(payload: bytes, expected_names: set[str]) -> dict:
     names = [node.get("name") for node in document.get("nodes", []) if "mesh" in node]
     if len(names) != len(set(names)) or set(names) != expected_names:
         raise ValueError("GLB mesh node names differ from manifest structures.")
+    validate_binary_layout(document, binary_length)
     return document
 
 
