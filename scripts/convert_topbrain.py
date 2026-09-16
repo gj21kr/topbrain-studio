@@ -33,6 +33,11 @@ RAS_MM_TO_GLTF_M = np.array(
 # The browser half of this asset boundary lives in src/model.ts: inspectGlb
 # enforces the byte limit, validateMeshData the per-mesh element counts. Both
 # halves must move together or the converter writes files the viewer refuses.
+# The ITK-SNAP label map carries no group column, so the only signal for the
+# arteries/veins split is the release's own label numbering: batch 1 numbers
+# arteries 1-34 and veins/sinuses above that. Re-confirm against the label map
+# before converting a release that renumbers labels.
+LAST_ARTERY_LABEL = 34
 MAX_GLB_BYTES = 150 * 1024 * 1024
 MAX_MESH_VERTICES = 3_000_000
 MAX_MESH_INDICES = 9_000_000
@@ -466,7 +471,7 @@ def convert(
             if short_name.startswith("L-")
             else "Not side-specific"
         )
-        group = "Arteries" if value <= 34 else "Veins and sinuses"
+        group = "Arteries" if value <= LAST_ARTERY_LABEL else "Veins and sinuses"
         explode = [0.04 if side == "Right" else -0.04 if side == "Left" else 0, 0.02, 0]
         structures.append(
             {
