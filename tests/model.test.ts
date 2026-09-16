@@ -9,6 +9,30 @@ test('validates provenance, unique IDs, coordinate units and finite vectors', ()
   assert.throws(() => validateManifest({ ...demo, structures: [{ ...demo.structures[0], explode: [Infinity,0,0] }] }), /vector/);
   assert.throws(() => validateManifest({ ...demo, units: 'mm' }), /units/);
 });
+function glbWithBin(json: unknown, binary: Uint8Array, opts: { type?: number; declared?: number; trailing?: number } = {}) {
+  const raw = new TextEncoder().encode(JSON.stringify(json)), jsonLen = Math.ceil(raw.length / 4) * 4;
+  const total = 20 + jsonLen + 8 + binary.length + (opts.trailing ?? 0);
+  const buffer = new ArrayBuffer(total), view = new DataView(buffer);
+  view.setUint32(0, 0x46546c67, true); view.setUint32(4, 2, true); view.setUint32(8, total, true);
+  view.setUint32(12, jsonLen, true); view.setUint32(16, 0x4e4f534a, true);
+  new Uint8Array(buffer, 20, jsonLen).fill(32); new Uint8Array(buffer, 20).set(raw);
+  view.setUint32(20 + jsonLen, opts.declared ?? binary.length, true);
+  view.setUint32(24 + jsonLen, opts.type ?? 0x004e4942, true);
+  new Uint8Array(buffer, 28 + jsonLen, binary.length).set(binary);
+  return buffer;
+}
+test('rejects a binary chunk that does not tile the file', () => {
+  const asset = { asset: { version: '2.0' } }, body = new Uint8Array(16);
+  assert.doesNotThrow(() => inspectGlb(glbWithBin(asset, body)));
+  assert.doesNotThrow(() => inspectGlb(glb(asset)), 'a GLB with no binary chunk stays valid');
+  assert.throws(() => inspectGlb(glbWithBin(asset, body, { type: 0x4e4f534a })), /binary chunk/);
+  assert.throws(() => inspectGlb(glbWithBin(asset, body, { declared: 13 })), /binary chunk/);
+  assert.throws(() => inspectGlb(glbWithBin(asset, body, { declared: 1024 })), /binary chunk/);
+  assert.throws(() => inspectGlb(glbWithBin(asset, body, { trailing: 4 })), /binary chunk/);
+  const valid = glbWithBin(asset, body), cut = valid.slice(0, valid.byteLength - 20);
+  new DataView(cut).setUint32(8, cut.byteLength, true);
+  assert.throws(() => inspectGlb(cut), /binary chunk/, 'a truncated chunk header is not a whole chunk');
+});
 test('blocks remote and data resources before loader requests', () => {
   for (const uri of ['https://example.com/scan.bin','../private.bin','data:application/octet-stream;base64,AA==']) assert.throws(() => inspectGlb(glb({ asset: { version: '2.0' }, buffers: [{ uri }] })), /URI/);
   assert.throws(() => inspectGlb(glb({ extensionsUsed: ['KHR_draco_mesh_compression'] })), /extensions/);
