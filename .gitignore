@@ -24,6 +24,8 @@ acceptance-screenshots/
 *.[mM][hH][dD]
 *.[rR][aA][wW]
 *.[gG][lL][bB]
+# Explicitly approved public BodyParts3D reference model; keep all other GLBs ignored.
+!public/reference/bodyparts3d.glb
 *.[gG][lL][tT][fF]
 *.[bB][iI][nN]
 *.[sS][tT][lL]
