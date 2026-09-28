@@ -20,4 +20,9 @@ const localCase: Connect.NextHandleFunction = (request, response, next) => {
   const stream = fs.createReadStream(target); stream.on('error', () => { response.destroy(); }); stream.pipe(response);
 };
 const localCasePlugin: Plugin = { name: 'loopback-local-case', configureServer(server) { server.middlewares.use(localCase); }, configurePreviewServer(server) { server.middlewares.use(localCase); } };
-export default defineConfig({ plugins: [react(), localCasePlugin], server: { host: '127.0.0.1', port: 5181, strictPort: true, fs: { deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/private-assets/**', '**/data/**'] } }, preview: { host: '127.0.0.1', port: 5181, strictPort: true } });
+export default defineConfig({
+  base: process.env.GITHUB_PAGES === 'true' ? '/topbrain-studio/' : '/',
+  plugins: [react(), localCasePlugin],
+  server: { host: '127.0.0.1', port: 5181, strictPort: true, fs: { deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/private-assets/**', '**/data/**'] } },
+  preview: { host: '127.0.0.1', port: 5181, strictPort: true }
+});

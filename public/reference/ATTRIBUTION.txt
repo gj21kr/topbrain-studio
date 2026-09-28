@@ -1,0 +1,13 @@
+BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International.
+
+Official license (updated 2025-02-27): https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html
+License terms: https://creativecommons.org/licenses/by/4.0/
+Source: BodyParts3D 4.0, 99% polygon-reduced PART-OF Tree OBJ archive:
+https://dbarchive.biosciencedbc.jp/data/bodyparts3d/20130619/partof_BP3D_4.0_obj_99.zip
+Source archive SHA-256: 9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854931dd5e3eb61c97
+Official concept and element tables: https://dbarchive.biosciencedbc.jp/data/bodyparts3d/20130619/partof_parts_list_e.txt ; https://dbarchive.biosciencedbc.jp/data/bodyparts3d/20130619/partof_element_parts.txt
+Publication: Mitsuhashi et al. (2009), BodyParts3D: 3D structure database for anatomical concepts. https://doi.org/10.1093/nar/gkn613
+
+Adaptations: selected named atomic FJ meshes from the 4.0 PART-OF archive, including separate ascending aorta and aortic arch segments and their source-mapped branches; assembled compound skull and brain concepts from the official element table; converted OBJ to one embedded GLB with positions and triangles; converted millimeters/Z-up to meters/Y-up; assigned display colors, opacity and educational groupings. The full aorta, which extends into the abdomen, is omitted to keep the brain legible. Geometry was not mirrored, sculpted or inferred. Individual FMA, BP and FJ IDs are in bodyparts3d.json.
+Source coverage: the official PART-OF archive has no matching mesh for the visible bilateral gaps between common and internal carotid arteries (nearest vertices 62.5-63.4 mm apart) or between subclavian and vertebral arteries (50.2-50.9 mm apart). Other nearby named arteries do not connect these trunks. The four connectionGuides records in bodyparts3d.json are explicitly schematic display guides between nearest source vertices; they add no geometry to the official GLB.
+The source is an adult male CAD anatomical reference, not a scan-derived patient brain mask and not spatially registered to any TopBrain or TotalSegmentator case. It is for anatomy education and is not a diagnostic device.
