@@ -67,10 +67,10 @@ test('accepts legacy manifests and version 2 per-structure provenance and defaul
 });
 
 test('schema 2 requires every structure to name its own source', () => {
-  const anatomy = { ...demo.structures[0], source: 'TotalSegmentator' }, vessel = { ...demo.structures[1], source: 'TopBrain' };
+  const anatomy = { ...demo.structures[0], source: 'TotalSegmentator' }, vessel = { ...demo.structures[1], source: 'CT labels' };
   assert.equal(validateManifest({ ...demo, schemaVersion: 2, structures: [anatomy, vessel] }).structures.length, 2);
-  // Without one the viewer shows the manifest source, attributing a
-  // TotalSegmentator prediction to TopBrain.
+  // Without one the viewer shows the manifest source, attributing the
+  // structure to whatever that string leads with.
   assert.throws(() => validateManifest({ ...demo, schemaVersion: 2 }), /source on every structure/);
   assert.throws(() => validateManifest({ ...demo, schemaVersion: 2, structures: [anatomy, demo.structures[1]] }), /source on every structure/);
   // Schema 1 vessel assets carry no per-structure source and stay valid.

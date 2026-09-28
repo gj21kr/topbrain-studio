@@ -7,12 +7,31 @@ import unittest
 
 import nibabel as nib
 import numpy as np
-import trimesh
 
-from scripts.convert_topbrain import MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, anatomy_explode, anatomy_side, convert, label_mesh, manifest_schema_version, read_labelmap, validate_binary_layout, validate_embedded_glb, voxel_to_gltf_transform
+from scripts.convert_subject import GROUP_EXPLODE, MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, STRUCTURE_GROUPS, anatomy_explode, anatomy_side, classify_structure, convert, label_mesh, manifest_schema_version, validate_binary_layout, validate_embedded_glb, voxel_to_gltf_transform
+
+# The 117 structure keys of the TotalSegmentator "total" task (dataset v2), as
+# published in the tool's class map. The catalog below must place every one.
+DATASET_KEYS = (
+    "spleen kidney_right kidney_left gallbladder liver stomach pancreas adrenal_gland_right adrenal_gland_left "
+    "lung_upper_lobe_left lung_lower_lobe_left lung_upper_lobe_right lung_middle_lobe_right lung_lower_lobe_right "
+    "esophagus trachea thyroid_gland small_bowel duodenum colon urinary_bladder prostate kidney_cyst_left kidney_cyst_right "
+    "sacrum vertebrae_S1 vertebrae_L5 vertebrae_L4 vertebrae_L3 vertebrae_L2 vertebrae_L1 vertebrae_T12 vertebrae_T11 "
+    "vertebrae_T10 vertebrae_T9 vertebrae_T8 vertebrae_T7 vertebrae_T6 vertebrae_T5 vertebrae_T4 vertebrae_T3 vertebrae_T2 "
+    "vertebrae_T1 vertebrae_C7 vertebrae_C6 vertebrae_C5 vertebrae_C4 vertebrae_C3 vertebrae_C2 vertebrae_C1 heart aorta "
+    "pulmonary_vein brachiocephalic_trunk subclavian_artery_right subclavian_artery_left common_carotid_artery_right "
+    "common_carotid_artery_left brachiocephalic_vein_left brachiocephalic_vein_right atrial_appendage_left superior_vena_cava "
+    "inferior_vena_cava portal_vein_and_splenic_vein iliac_artery_left iliac_artery_right iliac_vena_left iliac_vena_right "
+    "humerus_left humerus_right scapula_left scapula_right clavicula_left clavicula_right femur_left femur_right hip_left hip_right "
+    "spinal_cord gluteus_maximus_left gluteus_maximus_right gluteus_medius_left gluteus_medius_right gluteus_minimus_left "
+    "gluteus_minimus_right autochthon_left autochthon_right iliopsoas_left iliopsoas_right brain skull "
+    "rib_left_1 rib_left_2 rib_left_3 rib_left_4 rib_left_5 rib_left_6 rib_left_7 rib_left_8 rib_left_9 rib_left_10 rib_left_11 rib_left_12 "
+    "rib_right_1 rib_right_2 rib_right_3 rib_right_4 rib_right_5 rib_right_6 rib_right_7 rib_right_8 rib_right_9 rib_right_10 rib_right_11 rib_right_12 "
+    "sternum costal_cartilages"
+).split()
 
 
-class ConverterTests(unittest.TestCase):
+class GeometryTests(unittest.TestCase):
     def test_rotation_shear_spacing_origin_and_units(self):
         affine = np.array([[0, -2, 0.3, 10], [3, 0.2, 0, -20], [0, 0, 4, 30], [0, 0, 0, 1]])
         point = np.array([2, 3, 4, 1])
@@ -44,98 +63,87 @@ class ConverterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             voxel_to_gltf_transform(np.zeros((4, 4)), "mm")
 
-    def test_full_conversion_preserves_every_label_and_exported_affine_witness(self):
+    def test_left_handed_affine_converts_end_to_end_with_outward_faces(self):
+        """The reflection branch of label_mesh through the whole export path."""
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            labelmap = root / "labelmap.txt"
-            labelmap.write_text('0 0 0 0 0 0 0 "Clear"\n1 255 0 0 1 1 1 "BA"\n4 0 255 0 1 1 1 "R-ICA"\n', encoding="utf-8")
-            fullnames = root / "fullnames.txt"
-            fullnames.write_text("BA → Basilar Artery\nR-ICA → Right Internal Carotid Artery", encoding="utf-8")
-            license_path = root / "License.txt"
-            license_path.write_text("non-commercial use; commercial permission required", encoding="utf-8")
-            volume = np.zeros((5, 6, 7), dtype=np.uint8)
-            volume[0, 0, 0] = 1
-            volume[3:5, 3:5, 3:6] = 4
-            affine = np.array([[0, -2, 0.3, 10], [3, 0.2, 0, -20], [0, 0, 4, 30], [0, 0, 0, 1]])
-            image = nib.Nifti1Image(volume, affine)
-            image.header.set_xyzt_units("mm")
-            # These fields must never propagate to the output.
-            image.header["descrip"] = b"PRIVATE_HEADER_DO_NOT_EXPORT"
-            source = root / "PRIVATE_SOURCE_DO_NOT_EXPORT.nii.gz"
-            nib.save(image, source)
-            output = root / "assets" / "model"
-            result = convert(source, labelmap, license_path, output, fullnames)
-            payload = output.with_suffix(".glb").read_bytes()
-            document = validate_embedded_glb(payload, {"label-001", "label-004"})
-            self.assertEqual({entry["label"] for entry in result["structures"]}, {1, 4})
-            self.assertEqual(result["structures"][0]["name"], "Basilar Artery")
-            scene = trimesh.load(output.with_suffix(".glb"), force="scene", process=False)
-            affine_readback = nib.load(source).affine
-            for entry in result["structures"]:
-                witness = entry["geometry"]["affineWitness"]
-                # Compute independently rather than calling the converter transform.
-                ras_mm = affine_readback @ np.r_[witness["voxel"], 1]
-                expected = ras_mm[[0, 2, 1]] * [0.001, 0.001, -0.001]
-                geometry = scene.geometry[entry["meshName"]]
-                self.assertLess(np.linalg.norm(geometry.vertices - expected, axis=1).min(), 1e-8)
-                np.testing.assert_allclose(witness["gltfM"], expected)
-            combined = json.dumps(result) + json.dumps(document)
-            self.assertNotIn("PRIVATE_HEADER", combined)
-            self.assertNotIn("PRIVATE_SOURCE", combined)
-            self.assertNotIn(str(root), combined)
-            # Batch-1 regression: label header lacks units while the matching CTA
-            # image declares mm. Unit evidence must come from an identical grid.
-            reference = root / "reference.nii.gz"
-            nib.save(image, reference)
-            image.header.set_xyzt_units("unknown")
-            nib.save(image, source)
-            with self.assertRaisesRegex(ValueError, "spatial units"):
-                convert(source, labelmap, license_path, output, fullnames)
-            resolved = convert(source, labelmap, license_path, output, fullnames, reference)
-            self.assertEqual(resolved["metadata"]["sourceUnits"], "unknown")
-            self.assertEqual(resolved["metadata"]["resolvedSourceUnits"], "mm")
-            other = nib.Nifti1Image(volume, affine + np.diag([0, 0, 1, 0]))
-            other.header.set_xyzt_units("mm")
-            nib.save(other, reference)
-            with self.assertRaisesRegex(ValueError, "identical voxel grid"):
-                convert(source, labelmap, license_path, output, fullnames, reference)
-            image.header.set_xyzt_units("mm")
-            nib.save(image, source)
-            labelmap.write_text('1 255 0 0 1 1 1 "BA"\n', encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "no mapping"):
-                convert(source, labelmap, license_path, output, fullnames)
-
-    def test_label_groups_split_arteries_from_veins_at_the_release_boundary(self):
-        """Both sides of the grouping boundary, which drives the viewer's filters."""
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            labelmap = root / "labelmap.txt"
-            labelmap.write_text('34 255 0 0 1 1 1 "L-PCA"\n35 0 0 255 1 1 1 "SSS"\n', encoding="utf-8")
-            license_path = root / "License.txt"
-            license_path.write_text("non-commercial use; commercial permission required", encoding="utf-8")
-            volume = np.zeros((5, 5, 5), dtype=np.uint8)
-            volume[1, 1, 1] = 34
-            volume[3, 3, 3] = 35
-            image = nib.Nifti1Image(volume, np.eye(4))
-            image.header.set_xyzt_units("mm")
-            source = root / "case.nii.gz"
-            nib.save(image, source)
-            manifest = convert(source, labelmap, license_path, root / "model")
-            grouped = {entry["label"]: entry["group"] for entry in manifest["structures"]}
-            self.assertEqual(grouped, {34: "Arteries", 35: "Veins and sinuses"})
-            sided = {entry["label"]: entry["side"] for entry in manifest["structures"]}
-            self.assertEqual(sided, {34: "Left", 35: "Not side-specific"})
-
-    def test_label_map_rejects_duplicate_labels(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "labels.txt"
-            path.write_text('1 255 0 0 1 1 1 "BA"\n1 0 0 0 1 1 1 "Different"\n', encoding="utf-8")
-            with self.assertRaises(ValueError):
-                read_labelmap(path)
+            subject = Path(directory) / "s0001"
+            (subject / "segmentations").mkdir(parents=True)
+            volume = np.zeros((6, 6, 6), dtype=np.uint8)
+            volume[1:4, 1:4, 1:4] = 1
+            # LAS storage: a negative x spacing flips handedness, as real CTs often do.
+            affine = np.diag([-1.5, 1.5, 2.0, 1.0])
+            affine[:3, 3] = [40, -30, 100]
+            for name, data in [("ct", np.random.default_rng(0).integers(0, 200, volume.shape, dtype=np.int16)), ("liver", volume)]:
+                image = nib.Nifti1Image(data, affine)
+                image.header.set_xyzt_units("mm")
+                nib.save(image, (subject / ("ct.nii.gz" if name == "ct" else f"segmentations/{name}.nii.gz")))
+            manifest = convert(subject, Path(directory) / "out")
+            self.assertLess(np.linalg.det(np.array(manifest["metadata"]["ctAffine"])[:3, :3]), 0)
+            geometry = manifest["structures"][0]["geometry"]
+            self.assertTrue(geometry["closedSurface"])
+            witness = geometry["affineWitness"]
+            ras = affine @ np.r_[witness["voxel"], 1]
+            np.testing.assert_allclose(witness["gltfM"], ras[[0, 2, 1]] * [0.001, 0.001, -0.001])
 
 
-if __name__ == "__main__":
-    unittest.main()
+class StructureCatalogTests(unittest.TestCase):
+    """The dataset's 117 keys must all land in a named group with a side."""
+
+    def test_every_dataset_key_has_a_group_other_than_the_fallback(self):
+        unplaced = [key for key in DATASET_KEYS if classify_structure(key.lower())[0] == "Other anatomy"]
+        self.assertEqual(unplaced, [])
+        self.assertEqual(len(DATASET_KEYS), 117)
+
+    def test_groups_are_disjoint_by_first_match_and_named_as_documented(self):
+        seen = {classify_structure(key.lower())[0] for key in DATASET_KEYS}
+        self.assertEqual(seen, {group for group, *_ in STRUCTURE_GROUPS})
+        self.assertEqual(classify_structure("aorta"), ("Arteries", "#d9534f", 1.0, True))
+        self.assertEqual(classify_structure("portal_vein_and_splenic_vein")[0], "Veins")
+        self.assertEqual(classify_structure("atrial_appendage_left")[0], "Heart")
+        self.assertEqual(classify_structure("kidney_cyst_right")[0], "Urinary")
+        self.assertEqual(classify_structure("costal_cartilages")[0], "Ribs")
+        self.assertEqual(classify_structure("thyroid_gland")[0], "Glands")
+        self.assertEqual(classify_structure("something_unknown"), ("Other anatomy", "#9fb3b0", 0.65, False))
+
+    def test_opening_view_is_skeleton_and_circulation(self):
+        visible = {classify_structure(key.lower())[0] for key in DATASET_KEYS if classify_structure(key.lower())[3]}
+        self.assertEqual(visible, {"Skull", "Vertebrae", "Ribs", "Limb bones", "Heart", "Arteries", "Veins"})
+
+    def test_side_is_read_from_suffix_and_mid_key_for_ribs(self):
+        for key in ["kidney_right", "rib_right_4", "gluteus_maximus_right", "iliac_vena_right", "KIDNEY_RIGHT"]:
+            with self.subTest(key=key):
+                self.assertEqual(anatomy_side(key), "Right")
+        for key in ["kidney_left", "rib_left_12", "lung_upper_lobe_left", "atrial_appendage_left", "adrenal_gland_left"]:
+            with self.subTest(key=key):
+                self.assertEqual(anatomy_side(key), "Left")
+        for key in ["aorta", "brain", "skull", "trachea", "vertebrae_C3", "portal_vein_and_splenic_vein", "sternum"]:
+            with self.subTest(key=key):
+                self.assertEqual(anatomy_side(key), "Not side-specific")
+        sided = sum(anatomy_side(key) != "Not side-specific" for key in DATASET_KEYS)
+        self.assertEqual(sided, 66, "25 left/right pairs, 5 lung lobes, the left atrial appendage and 24 ribs")
+
+    def test_explode_shares_one_lateral_sign_and_never_leaves_a_structure_in_place(self):
+        for side, expected in [("Right", 0.04), ("Left", -0.04), ("Not side-specific", 0.0)]:
+            for group, *_ in STRUCTURE_GROUPS:
+                with self.subTest(side=side, group=group):
+                    vector = anatomy_explode(group, side)
+                    self.assertEqual(vector[0], expected)
+                    self.assertNotEqual(vector, [0.0, 0.0, 0.0])
+        self.assertEqual(anatomy_explode("Skull", "Not side-specific"), [0.0, 0.06, 0.0])
+        self.assertEqual(anatomy_explode("Brain", "Not side-specific"), [0.0, 0.04, 0.0])
+        self.assertEqual(anatomy_explode("Vertebrae", "Not side-specific"), [0.0, -0.04, 0.0])
+        self.assertEqual(anatomy_explode("Arteries", "Right"), [0.04, 0.02, 0.0])
+        self.assertEqual(anatomy_explode("Heart", "Left"), [-0.04, 0.0, -0.03])
+        self.assertEqual(anatomy_explode("Muscles", "Not side-specific"), [0.0, -0.02, 0.03])
+        # A group the table does not know still separates, anteriorly.
+        self.assertEqual(anatomy_explode("Other anatomy", "Not side-specific"), [0.0, 0.0, -0.04])
+
+    def test_every_group_has_a_non_zero_explode_entry(self):
+        """The two tables must agree, or a midline structure could sit still."""
+        self.assertEqual({group for group, *_ in STRUCTURE_GROUPS}, set(GROUP_EXPLODE))
+        for group, offsets in GROUP_EXPLODE.items():
+            with self.subTest(group=group):
+                self.assertNotEqual(offsets, (0.0, 0.0))
 
 
 class EmbeddedGlbTests(unittest.TestCase):
@@ -158,7 +166,7 @@ class EmbeddedGlbTests(unittest.TestCase):
             chunks += struct.pack("<II", len(binary), 0x004E4942) + binary
         return struct.pack("<III", 0x46546C67, 2, 12 + len(chunks)) + chunks
 
-    def document(self, names=("label-001",), vertices=300, indices=300, primitives=1, mode=4):
+    def document(self, names=("liver",), vertices=300, indices=300, primitives=1, mode=4):
         accessors, views, meshes, nodes, offset = [], [], [], [], 0
         for index, name in enumerate(names):
             views.append({"buffer": 0, "byteOffset": offset, "byteLength": vertices * 12})
@@ -180,16 +188,16 @@ class EmbeddedGlbTests(unittest.TestCase):
         }
 
     def test_accepts_the_static_subset_and_blocks_external_resources(self):
-        self.assertEqual(len(validate_embedded_glb(self.glb(self.document()), {"label-001"})["nodes"]), 1)
+        self.assertEqual(len(validate_embedded_glb(self.glb(self.document()), {"liver"})["nodes"]), 1)
         for uri in ["https://example.com/scan.bin", "../private.bin", "data:application/octet-stream;base64,AA=="]:
             with self.subTest(uri=uri):
                 document = self.document() | {"buffers": [{"uri": uri}]}
                 with self.assertRaisesRegex(ValueError, "URI"):
-                    validate_embedded_glb(self.glb(document), {"label-001"})
+                    validate_embedded_glb(self.glb(document), {"liver"})
         for key, value in [("extensionsUsed", ["KHR_draco_mesh_compression"]), ("extensionsRequired", ["KHR_draco_mesh_compression"]), ("animations", [{}]), ("skins", [{}])]:
             with self.subTest(key=key):
                 with self.assertRaisesRegex(ValueError, "static"):
-                    validate_embedded_glb(self.glb(self.document() | {key: value}), {"label-001"})
+                    validate_embedded_glb(self.glb(self.document() | {key: value}), {"liver"})
 
     def test_rejects_malformed_header_and_json_chunk(self):
         payload = self.glb(self.document())
@@ -201,7 +209,7 @@ class EmbeddedGlbTests(unittest.TestCase):
         ]:
             with self.subTest(label=label):
                 with self.assertRaisesRegex(ValueError, "header"):
-                    validate_embedded_glb(broken, {"label-001"})
+                    validate_embedded_glb(broken, {"liver"})
         for label, broken in [
             ("chunk type", payload[:16] + struct.pack("<I", 0x004E4942) + payload[20:]),
             ("unaligned chunk", payload[:12] + struct.pack("<I", 13) + payload[16:]),
@@ -209,12 +217,9 @@ class EmbeddedGlbTests(unittest.TestCase):
         ]:
             with self.subTest(label=label):
                 with self.assertRaisesRegex(ValueError, "JSON chunk"):
-                    validate_embedded_glb(broken, {"label-001"})
+                    validate_embedded_glb(broken, {"liver"})
 
     def test_rejects_meshes_the_browser_would_refuse_to_import(self):
-        # Regression: the converter used to cap only total bytes, so a single
-        # dense structure could stay under 150 MB and still exceed the per-mesh
-        # limits validateMeshData applies after the browser parses the file.
         for label, kwargs in [
             ("too many vertices", {"vertices": 3_000_001}),
             ("no vertices", {"vertices": 2}),
@@ -224,13 +229,11 @@ class EmbeddedGlbTests(unittest.TestCase):
         ]:
             with self.subTest(label=label):
                 with self.assertRaises(ValueError):
-                    validate_embedded_glb(self.glb(self.document(**kwargs)), {"label-001"})
-        # A multi-primitive mesh parses into several three.js meshes behind one
-        # glTF node, which breaks the viewer's manifest-to-mesh name matching.
+                    validate_embedded_glb(self.glb(self.document(**kwargs)), {"liver"})
         for label, kwargs in [("multi-primitive", {"primitives": 2}), ("no primitive", {"primitives": 0}), ("point cloud", {"mode": 0}), ("line strip", {"mode": 3})]:
             with self.subTest(label=label):
                 with self.assertRaisesRegex(ValueError, "one triangle primitive"):
-                    validate_embedded_glb(self.glb(self.document(**kwargs)), {"label-001"})
+                    validate_embedded_glb(self.glb(self.document(**kwargs)), {"liver"})
         for label, mutate in [
             ("missing POSITION", lambda d: d["meshes"][0]["primitives"][0]["attributes"].clear()),
             ("POSITION out of range", lambda d: d["meshes"][0]["primitives"][0]["attributes"].__setitem__("POSITION", 9)),
@@ -241,22 +244,19 @@ class EmbeddedGlbTests(unittest.TestCase):
                 document = self.document()
                 mutate(document)
                 with self.assertRaisesRegex(ValueError, "accessor is missing"):
-                    validate_embedded_glb(self.glb(document), {"label-001"})
+                    validate_embedded_glb(self.glb(document), {"liver"})
         document = self.document()
         document["accessors"][0]["type"] = "VEC2"
         with self.assertRaisesRegex(ValueError, "VEC3"):
-            validate_embedded_glb(self.glb(document), {"label-001"})
-        # Sitting exactly on both browser limits must still convert.
+            validate_embedded_glb(self.glb(document), {"liver"})
         on_limit = self.document(vertices=3_000_000, indices=9_000_000)
-        self.assertEqual(len(validate_embedded_glb(self.glb(on_limit), {"label-001"})["meshes"]), 1)
-        # Non-indexed geometry falls back to the vertex count for the triangle check.
+        self.assertEqual(len(validate_embedded_glb(self.glb(on_limit), {"liver"})["meshes"]), 1)
         non_indexed = self.document(vertices=299)
         non_indexed["meshes"][0]["primitives"][0].pop("indices")
         with self.assertRaisesRegex(ValueError, "complete triangles"):
-            validate_embedded_glb(self.glb(non_indexed), {"label-001"})
+            validate_embedded_glb(self.glb(non_indexed), {"liver"})
 
     def test_rejects_a_binary_chunk_that_does_not_tile_the_file(self):
-        """Both halves stopped at the JSON chunk, so anything after it was ignored."""
         payload = self.glb(self.document())
         start = 20 + struct.unpack_from("<I", payload, 12)[0]
         retotal = lambda data: data[:8] + struct.pack("<I", len(data)) + data[12:]
@@ -270,13 +270,12 @@ class EmbeddedGlbTests(unittest.TestCase):
         ]:
             with self.subTest(label=label):
                 with self.assertRaisesRegex(ValueError, "binary chunk"):
-                    validate_embedded_glb(broken, {"label-001"})
+                    validate_embedded_glb(broken, {"liver"})
 
     def test_binary_layout_proves_the_bytes_behind_every_accessor_exist(self):
         base = self.document()
         length = base["buffers"][0]["byteLength"]
         validate_binary_layout(base, length)
-        # The BIN chunk is padded to 4 bytes, so it may exceed the buffer by 3.
         validate_binary_layout(base, length + 3)
         for label, padding in [("chunk shorter than its buffer", -4), ("more than padding", 4)]:
             with self.subTest(label=label):
@@ -298,20 +297,18 @@ class EmbeddedGlbTests(unittest.TestCase):
                 mutate(document)
                 with self.assertRaisesRegex(ValueError, message):
                     validate_binary_layout(document, length)
-        # An interleaved view needs more room for the same element count.
         strided = json.loads(json.dumps(base))
         strided["bufferViews"][0]["byteStride"] = 24
         with self.assertRaisesRegex(ValueError, "past the end"):
             validate_binary_layout(strided, length)
-        # And validate_embedded_glb must actually run all of this, not just own it.
         wired = self.document()
         wired["bufferViews"][0]["byteLength"] = wired["buffers"][0]["byteLength"] + 4
         with self.assertRaisesRegex(ValueError, "outside the binary chunk"):
-            validate_embedded_glb(self.glb(wired), {"label-001"})
+            validate_embedded_glb(self.glb(wired), {"liver"})
 
     def test_rejects_payloads_over_the_browser_import_limit(self):
         with self.assertRaisesRegex(ValueError, "150 MB"):
-            validate_embedded_glb(bytes(150 * 1024 * 1024 + 1), {"label-001"})
+            validate_embedded_glb(bytes(150 * 1024 * 1024 + 1), {"liver"})
 
     def test_limits_stay_equal_to_the_browser_half_in_model_ts(self):
         """Neither half of a mirrored limit may move without the other."""
@@ -320,17 +317,15 @@ class EmbeddedGlbTests(unittest.TestCase):
         self.assertIn(f"byteLength > {MAX_GLB_BYTES // (1024 * 1024)} * 1024 * 1024", source)
         self.assertIn(f"positions.count > {MAX_MESH_VERTICES:_}", source)
         self.assertIn(f"count > {MAX_MESH_INDICES:_}", source)
-        # The chunk walk is mirrored too; the byte-level layout below it is not,
-        # because the browser's loader re-derives it while parsing.
         self.assertIn("!== 0x004e4942", source)
         self.assertIn("next + 8 + binary !== buffer.byteLength", source)
 
     def test_rejects_mesh_names_that_differ_from_the_manifest(self):
         for label, names, expected in [
-            ("renamed", ("label-002",), {"label-001"}),
-            ("missing structure", ("label-001",), {"label-001", "label-004"}),
-            ("extra mesh", ("label-001", "label-004"), {"label-001"}),
-            ("duplicate", ("label-001", "label-001"), {"label-001"}),
+            ("renamed", ("spleen",), {"liver"}),
+            ("missing structure", ("liver",), {"liver", "spleen"}),
+            ("extra mesh", ("liver", "spleen"), {"liver"}),
+            ("duplicate", ("liver", "liver"), {"liver"}),
         ]:
             with self.subTest(label=label):
                 with self.assertRaisesRegex(ValueError, "names differ"):
@@ -338,98 +333,19 @@ class EmbeddedGlbTests(unittest.TestCase):
         unnamed = self.document()
         unnamed["nodes"][0].pop("name")
         with self.assertRaisesRegex(ValueError, "names differ"):
-            validate_embedded_glb(self.glb(unnamed), {"label-001"})
-
-
-class SharedDerivationTests(unittest.TestCase):
-    """Laterality and separation now have one implementation for both paths.
-
-    TopBrain labels and TotalSegmentator masks name their sides differently, so
-    these used to be two rules with a shared vocabulary and no shared code.
-    """
-
-    def test_side_reads_both_naming_conventions_and_normalises_casing(self):
-        for name in ["R-ICA", "r-ica", "R-TS", "kidney_r", "KIDNEY_R", "common_carotid_artery_right"]:
-            with self.subTest(name=name):
-                self.assertEqual(anatomy_side(name), "Right")
-        for name in ["L-MCA", "l-mca", "L-VA", "kidney_l", "clavicula_left", "lung_upper_lobe_l"]:
-            with self.subTest(name=name):
-                self.assertEqual(anatomy_side(name), "Left")
-        for name in ["BA", "SSS", "AComA", "Torcula", "brain", "skull", "trachea", "aorta", "spinal_cord", "vertebrae_C3"]:
-            with self.subTest(name=name):
-                self.assertEqual(anatomy_side(name), "Not side-specific")
-
-    def test_side_never_contradicts_the_prefix_rule_it_replaced(self):
-        """Reading both conventions may resolve a name, never re-answer one."""
-        prefix_only = lambda n: "Right" if n.startswith("R-") else "Left" if n.startswith("L-") else None
-        corpus = ["BA", "R-ICA", "L-MCA", "SSS", "AComA", "Torcula", "R-TS", "L-VA", "ICA_R", "sinus_left", "r-ica"]
-        widened = []
-        for name in corpus:
-            old, unified = prefix_only(name), anatomy_side(name)
-            if old is not None:
-                self.assertEqual(unified, old, f"{name} lost or changed its side")
-            elif unified != "Not side-specific":
-                widened.append(name)
-        # A mask key can never hold a hyphen, so only label names widen here.
-        self.assertEqual(widened, ["ICA_R", "sinus_left", "r-ica"])
-
-    def test_explode_shares_one_lateral_sign_across_both_import_paths(self):
-        for side, expected in [("Right", 0.04), ("Left", -0.04), ("Not side-specific", 0.0)]:
-            with self.subTest(side=side):
-                vessel = anatomy_explode("R-ICA", "Arteries", side)
-                vein = anatomy_explode("SSS", "Veins and sinuses", side)
-                anatomy = anatomy_explode("kidney_r", "Other anatomy", side)
-                bone = anatomy_explode("rib_left_4", "Bones", side)
-                for vector in [vessel, vein, anatomy, bone]:
-                    self.assertEqual(vector[0], expected)
-                # Vessels keep the vector convert() used to build inline.
-                self.assertEqual(vessel, [expected, 0.02, 0.0])
-                self.assertEqual(vein, [expected, 0.02, 0.0])
-
-    def test_explode_parts_nested_groups_along_distinct_offsets(self):
-        verticals = {
-            "skull": anatomy_explode("skull", "Bones", "Not side-specific"),
-            "brain": anatomy_explode("brain", "Brain", "Not side-specific"),
-            "vessel": anatomy_explode("BA", "Arteries", "Not side-specific"),
-            "cord": anatomy_explode("spinal_cord", "Spinal cord", "Not side-specific"),
-            "bone": anatomy_explode("vertebrae_C3", "Bones", "Not side-specific"),
-        }
-        self.assertEqual([v[1] for v in verticals.values()], [0.06, 0.04, 0.02, -0.02, -0.04])
-        self.assertEqual(len({tuple(v) for v in verticals.values()}), len(verticals))
-        # A vessel answers from its group alone, so no label short name can
-        # reach the skull special case that sits below it.
-        self.assertEqual(anatomy_explode("skull", "Arteries", "Not side-specific"), [0.0, 0.02, 0.0])
-        self.assertEqual(anatomy_explode("skull", "Bones", "Not side-specific"), [0.0, 0.06, 0.0])
-        # An ungrouped midline structure moves anteriorly, not vertically.
-        self.assertEqual(anatomy_explode("trachea", "Other anatomy", "Not side-specific"), [0.0, 0.0, -0.04])
-        for vector in [*verticals.values(), anatomy_explode("trachea", "Other anatomy", "Not side-specific")]:
-            self.assertNotEqual(vector, [0.0, 0.0, 0.0], "every structure must separate")
+            validate_embedded_glb(self.glb(unnamed), {"liver"})
 
 
 class SchemaVersionTests(unittest.TestCase):
-    """The version number promises one thing that both halves now enforce.
+    """Schema 2 promises one thing that both halves enforce: every structure names its source."""
 
-    A structure without its own source falls back to the manifest source in the
-    viewer, which in a combined export reads as the TopBrain attribution.
-    """
-
-    def test_vessel_only_export_stays_schema_1_without_per_structure_sources(self):
-        self.assertEqual(manifest_schema_version([{"id": "label-001"}], False), 1)
-        self.assertEqual(manifest_schema_version([{"id": "label-001", "source": "TopBrain"}], False), 1)
-
-    def test_combined_export_is_schema_2_only_when_every_structure_names_a_source(self):
-        combined = [
-            {"id": "label-001", "source": "TopBrain"},
-            {"id": "total-brain", "source": "TotalSegmentator"},
-        ]
-        self.assertEqual(manifest_schema_version(combined, True), 2)
+    def test_schema_2_requires_a_source_on_every_structure(self):
+        good = [{"id": "liver", "source": "TotalSegmentator dataset"}, {"id": "aorta", "source": "TotalSegmentator dataset"}]
+        self.assertEqual(manifest_schema_version(good), 2)
         for label, broken in [("absent", {}), ("null", {"source": None}), ("empty", {"source": ""})]:
             with self.subTest(label=label):
-                with self.assertRaisesRegex(ValueError, "total-brain has none"):
-                    manifest_schema_version([combined[0], {"id": "total-brain", **broken}], True)
-        # The vessel half is held to the same promise, not just the added anatomy.
-        with self.assertRaisesRegex(ValueError, "label-001 has none"):
-            manifest_schema_version([{"id": "label-001"}, combined[1]], True)
+                with self.assertRaisesRegex(ValueError, "aorta has none"):
+                    manifest_schema_version([good[0], {"id": "aorta", **broken}])
 
     def test_the_promise_is_mirrored_in_the_browser_half(self):
         source = (Path(__file__).resolve().parents[1] / "src" / "model.ts").read_text(encoding="utf-8")
