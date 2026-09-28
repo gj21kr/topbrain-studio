@@ -2,12 +2,16 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { demo, explosionOffset, inspectGlb, validateManifest, validateMeshData, structureOpacity, type Manifest, type Structure } from './model';
+import { SparkRenderer, SplatMesh, SplatFileType } from '@sparkjsdev/spark';
+import { demo, explosionOffset, inspectGlb, inspectSplatPly, validateContext, validateManifest, validateMeshData, structureOpacity, type ContextLayer, type Manifest, type Structure } from './model';
 
-export interface Asset { manifest: Manifest; scene?: THREE.Group }
-export async function readAsset(manifestData: unknown, buffer: ArrayBuffer): Promise<Asset> {
+export interface ContextFiles { info: unknown; bytes: ArrayBuffer }
+export interface Asset { manifest: Manifest; scene?: THREE.Group; context?: { layer: ContextLayer; bytes: ArrayBuffer } }
+export async function readAsset(manifestData: unknown, buffer: ArrayBuffer, contextFiles?: ContextFiles): Promise<Asset> {
   const manifest = validateManifest(manifestData);
   inspectGlb(buffer);
+  // Validated before the GLB is parsed so a bad layer costs nothing but the header read.
+  const context = contextFiles && { layer: validateContext(contextFiles.info, inspectSplatPly(contextFiles.bytes), manifest), bytes: contextFiles.bytes };
   const manager = new THREE.LoadingManager();
   manager.setURLModifier(() => { throw new Error('Model resource requests are disabled.'); });
   const result = await new GLTFLoader(manager).parseAsync(buffer, '');
@@ -25,7 +29,7 @@ export async function readAsset(manifestData: unknown, buffer: ArrayBuffer): Pro
     if (names.size !== manifest.structures.length || manifest.structures.some(s => !names.has(s.meshName))) throw new Error('Manifest structures must match every GLB mesh exactly.');
     const bounds = new THREE.Box3().setFromObject(result.scene);
     if (bounds.isEmpty() || !Number.isFinite(bounds.getSize(new THREE.Vector3()).length()) || bounds.getSize(new THREE.Vector3()).length() < 1e-8) throw new Error('Model has invalid bounds.');
-    return { manifest, scene: result.scene };
+    return { manifest, scene: result.scene, context };
   } catch (error) { disposeAsset({ manifest, scene: result.scene }); throw error; }
 }
 
@@ -33,7 +37,7 @@ export function disposeAsset(asset: Asset) {
   asset.scene?.traverse(obj => { if (obj instanceof THREE.Mesh) { obj.geometry.dispose(); const mats = Array.isArray(obj.material) ? obj.material : [obj.material]; mats.forEach(m => m.dispose()); } });
 }
 
-interface Props { asset: Asset; selected: string; hidden: Set<string>; isolate: boolean; explosion: number; opacity: number; opacities: Map<string, number>; labels: boolean; autoRotate: boolean; view: { name: string; tick: number }; onSelect: (id: string) => void; onError: (message: string) => void }
+interface Props { asset: Asset; selected: string; hidden: Set<string>; isolate: boolean; explosion: number; opacity: number; context: boolean; contextOpacity: number; opacities: Map<string, number>; labels: boolean; autoRotate: boolean; view: { name: string; tick: number }; onSelect: (id: string) => void; onError: (message: string) => void }
 interface Piece { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; original: THREE.Vector3; data: Structure; label: HTMLDivElement }
 
 export default function Viewer(props: Props) {
@@ -63,6 +67,7 @@ export default function Viewer(props: Props) {
     const light = new THREE.DirectionalLight(0xffffff, 3); light.position.set(4, 7, 6); scene.add(light);
     const rim = new THREE.DirectionalLight(0x82adc7, 2); rim.position.set(-5, 2, -4); scene.add(rim);
     const pieces: Piece[] = [];
+    let spark: SparkRenderer | undefined, splat: SplatMesh | undefined;
     const explosionScale = 1.5 / Math.max(.000001, ...props.asset.manifest.structures.map(s => Math.hypot(...s.explode)));
     const addPiece = (geometry: THREE.BufferGeometry, data: Structure) => {
       const material = new THREE.MeshStandardMaterial({ color: data.color, roughness: .35, metalness: .12, side: THREE.DoubleSide });
@@ -80,6 +85,16 @@ export default function Viewer(props: Props) {
         const geometry = object.geometry.clone().applyMatrix4(object.matrixWorld).translate(-center.x, -center.y, -center.z).scale(scale, scale, scale);
         geometry.computeVertexNormals(); addPiece(geometry, data);
       } });
+      if (props.asset.context) {
+        // The PLY is already in the GLB's glTF Y-up frame (same voxelToGltfM), so the
+        // layer gets exactly the mesh placement, (p - center) * scale, and no axis flip.
+        // Spark transfers the bytes to its decode worker, so it gets a copy: the asset
+        // keeps its buffer and a re-run of this effect can load the layer again.
+        spark = new SparkRenderer({ renderer }); scene.add(spark);
+        splat = new SplatMesh({ fileBytes: props.asset.context.bytes.slice(0), fileType: SplatFileType.PLY, onLoad: () => { renderer.domElement.dataset.contextLoaded = 'true'; } });
+        splat.name = 'ct-context'; splat.scale.setScalar(scale); splat.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+        scene.add(splat);
+      }
     } else {
       demo.structures.forEach(data => {
         const curve = new THREE.CatmullRomCurve3(data.path!.map(p => new THREE.Vector3(...p)));
@@ -118,6 +133,7 @@ export default function Viewer(props: Props) {
         camera.position.fromArray(direction[p.view.name] ?? direction.anterior); controls.target.set(0,0,0); controls.update();
       }
       controls.autoRotate = p.autoRotate;
+      if (splat) { splat.visible = p.context; splat.opacity = p.contextOpacity; }
       for (const piece of pieces) {
         const selected = piece.data.id === p.selected;
         const opacity = structureOpacity(piece.data, p.opacities, selected, p.opacity);
@@ -139,6 +155,7 @@ export default function Viewer(props: Props) {
       controls.update(); renderer.render(scene, camera);
       renderer.domElement.dataset.rendered = 'true';
       renderer.domElement.dataset.visibleCount = String(pieces.filter(x => x.mesh.visible).length);
+      renderer.domElement.dataset.contextVisible = String(!!splat && splat.visible);
       frame = requestAnimationFrame(animate);
     };
     animate();
@@ -146,6 +163,7 @@ export default function Viewer(props: Props) {
       cancelAnimationFrame(frame); resize.disconnect(); controls.dispose();
       renderer.domElement.removeEventListener('pointerdown', pointerDown); renderer.domElement.removeEventListener('pointerup', pointerUp); renderer.domElement.removeEventListener('webglcontextlost', lost);
       scene.traverse(obj => { if (obj instanceof THREE.Mesh || obj instanceof THREE.LineSegments) { obj.geometry.dispose(); (Array.isArray(obj.material) ? obj.material : [obj.material]).forEach(m => m.dispose()); } });
+      splat?.dispose(); spark?.dispose();
       pieces.forEach(p => p.label.remove()); renderer.dispose(); renderer.domElement.remove();
     };
   }, [props.asset]);
