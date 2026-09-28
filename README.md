@@ -1,42 +1,67 @@
-# TopBrain Studio
+# Splatomy
 
-개인용 해부학 탐색 Studio. TopBrain 혈관과 같은 사례의 TotalSegmentator 마스크를 함께 표시할 수 있습니다. 구조 선택, 검색, 그룹별 숨김/표시·투명도, 단독 보기, 카메라 프리셋, 구조 분해, 라벨, 단계별 학습을 제공합니다. 실제 데이터와 첫 화면의 모식도는 별도로 표시합니다.
+공개 CT 데이터셋에서 해부 구조를 3D로 꺼내 브라우저에서 탐색하는 개인 프로젝트입니다. Python 변환기가 [TotalSegmentator 데이터셋](https://doi.org/10.5281/zenodo.10047292)(CC BY 4.0)의 한 피험자 — CT 한 장과 117개 구조의 ground-truth 분할 — 를 임베디드 GLB와 JSON manifest로 바꾸고, three.js 뷰어가 그것을 읽습니다. 구조 검색, 그룹별 표시·투명도, 단독 보기, 카메라 프리셋, 분해(explode), 라벨을 제공합니다.
 
-**이 GitHub 저장소는 코드만 공개합니다.** TopBrain 원본 영상·분할 데이터와 파생 GLB·JSON manifest·공간 메타데이터는 배포하지 않습니다. 사용자가 별도로 준비한 데이터는 로컬에서만 처리합니다.
+첫 화면의 혈관 모식도는 코드로 그린 도식이고, 실제 해부학은 변환한 데이터를 열었을 때만 나타납니다. 이 도구는 진단 기기가 아닙니다.
+
+## 이 저장소가 보여주는 것
+
+- **의료영상 좌표계를 끝까지 추적한다.** voxel → NIfTI affine → RAS mm → glTF metres. 회전·shear·비등방 spacing·좌우 반전(LAS) 볼륨을 전부 처리하고, 구조마다 voxel/vertex 한 쌍을 manifest에 남겨 독립 검산이 가능합니다.
+- **언어 경계를 건너는 계약을 양쪽에서 강제한다.** GLB 상한(150 MB, 메시당 정점 3,000,000·인덱스 9,000,000), chunk 레이아웃, "schema 2면 모든 구조가 자기 출처를 가진다"는 규칙이 Python 변환기와 TypeScript 뷰어에 각각 구현돼 있고, Python 테스트가 `src/model.ts`를 직접 읽어 두 숫자가 같은지 대조합니다. 한쪽만 바꾸면 CI가 깨집니다.
+- **테스트가 무엇을 검증하는지 뮤테이션으로 확인했다.** 상수를 바꾸거나 분기를 지웠을 때 실제로 실패하는 테스트만 남겼습니다. 이 과정에서 "통과하지만 아무것도 검증하지 않는" 테스트 네 개를 찾아 고쳤습니다.
+- **데이터는 저장소에 없다.** 코드만 배포하고, 데이터셋은 Zenodo에서 직접 받아 로컬에서 변환합니다. 파생 에셋은 `private-assets/`에 두고 커밋하지 않습니다.
+
+## 데이터셋
+
+Wasserthal, J. et al. *TotalSegmentator: Robust Segmentation of 104 Anatomic Structures in CT Images.* Radiology: AI 5(5), 2023. [doi:10.1148/ryai.230024](https://doi.org/10.1148/ryai.230024)
+데이터: [Zenodo 10047292](https://doi.org/10.5281/zenodo.10047292) (v2.0.1, 1,228명, 117구조, 23.6 GB) · 탐색용 [소형판 10047263](https://doi.org/10.5281/zenodo.10047263) (102명, 3.2 GB). 라이선스 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+각 피험자 폴더는 `ct.nii.gz`와 `segmentations/<structure>.nii.gz`(구조별 0/1 마스크)로 구성됩니다. 변환기는 이 레이아웃을 그대로 읽습니다.
 
 ## 실행
 
-Node.js 22.12 이상에서:
+Node.js 22 이상:
 
-```powershell
+```bash
 npm ci
-npm run dev
+npm run dev          # http://127.0.0.1:5181
+npm test             # 뷰어 쪽 계약 검증
+npm run build        # tsc + vite
 ```
 
-로컬 주소: http://127.0.0.1:5181 . `npm run build` 후 `npm run preview`로 빌드 결과를 확인합니다. `npm test`는 데이터 계약과 외부 리소스 차단을 검증합니다.
+Python 3.12–3.14 (`requirements-data.txt`가 핀한 numpy 2.5.x가 요구):
 
-## 실제 TopBrain 열기
+```bash
+pip install -r requirements-data.txt
+python -m unittest discover -s tests -t .
+```
 
-사용 권한을 갖춘 TopBrain 데이터를 로컬 폴더에 별도로 준비하세요. 원본을 수정하지 않고 별도 변환하며, 절차는 [로컬 데이터 변환 안내](docs/TOPBRAIN_DATA.md)를 참조하세요. 변환한 `private-assets/topbrain-cta-001.glb`와 `.json`이 있으면 **Open local TopBrain case**로 로드합니다. 이 이름은 앱이 찾는 로컬 출력 이름이며 원본 사례 식별자가 아닙니다. 이 두 파일은 Git과 정적 배포 빌드에 포함하지 않습니다. 로컬 개발/preview 서버만 지정된 두 경로로 제공합니다.
+## 변환
 
-다른 사례는 **Import GLB + manifest**에서 파일 두 개를 함께 선택합니다. 브라우저 메모리에서 처리하며 업로드하지 않습니다. GLB는 모든 geometry/buffer가 내장된 정적 모델이어야 하고, URI·압축 확장·animation·skin은 거부합니다. GLB ≤150 MB, manifest ≤2 MB, 1–500개 고유 구조를 허용합니다. 구조별 mesh 이름은 manifest와 정확히 일치해야 합니다.
+Zenodo에서 받은 zip을 풀고 피험자 폴더 하나를 지정합니다.
 
-TotalSegmentator 결과도 사용하려면 변환 명령에 `--total-masks '<동일 사례의 마스크 폴더>'`를 추가하세요. 0/1 NIfTI 마스크를 검사하여 비어 있는 구조는 제외하고, 뇌·뼈·척수 등을 독립 mesh로 추가합니다. 영상 크기와 물리 좌표가 다르면 변환을 중단합니다. 추가 구조는 처음에는 숨김 상태이며, 그룹별 표시와 투명도로 혈관과의 관계를 살펴볼 수 있습니다. 구조 분해 슬라이더는 추가 구조도 혈관과 함께 이동시킵니다(좌우 구조는 옆으로, 두개골·뇌·척수·척추는 위아래로 분리). 이전에 변환한 자산은 다시 변환해야 분해됩니다. Reset은 이러한 초기 설정을 복원합니다. 자세한 예시는 [로컬 데이터 변환 안내](docs/TOPBRAIN_DATA.md)에 있습니다.
+```bash
+python scripts/convert_subject.py --subject /path/to/Totalsegmentator_dataset_small_v201/s0011 --output private-assets/local-case
+```
 
-## 범위와 출처
+`private-assets/local-case.glb`와 `.json`이 생기면 앱의 **Open local case**가 로드합니다(개발/preview 서버가 loopback에만 그 두 경로를 제공합니다). 다른 파일은 **Import GLB + manifest**로 브라우저 메모리에서 직접 엽니다. 파이프라인과 좌표 계약의 상세는 [docs/DATA.md](docs/DATA.md)에 있습니다.
 
-- TopBrain은 CTA/MRA 혈관 segmentation이며 머리·목의 모든 뼈·근육·신경을 제공하지 않습니다. 원 TopCoW 영상은 얼굴을 제거하고 braincase로 crop되어 있어 목 전체를 재현한다고 말할 수 없습니다.
-- 첫 화면은 코드로 만든 모식도이며 TopBrain 데이터나 검증된 해부학이 아닙니다. 분해 모드는 원래 위치를 변경합니다.
-- 데이터는 저장소에 포함되지 않습니다. 사용한 release와 출처는 로컬 manifest에 기록합니다.
-- 비상업적 개인 학습 목적. TopBrain의 저자·제목·출처 링크를 유지하고, 사용한 release의 라이선스 원문을 확인하세요. 원문과 attribution은 로컬 manifest에 기록합니다. 데이터 이용 조건은 프로젝트 코드의 공개 여부와 별개입니다.
-- 진단·치료·시술 계획에 사용하지 않습니다.
+## 구성
 
-공식 자료: [TopBrain data](https://topbrain2025.grand-challenge.org/data/), [TopBrain v3](https://zenodo.org/records/21972006), [TopCoW preprocessing](https://topcow23.grand-challenge.org/data/).
+```
+scripts/convert_subject.py   NIfTI → GLB + manifest. 좌표 변환, marching cubes, GLB 검증, 구조 카탈로그
+src/model.ts                 manifest 검증, GLB 사전 검사, 뷰어 상태
+src/Viewer.tsx               three.js 씬, 로더, 분해 애니메이션
+src/App.tsx                  탐색 UI
+tests/                       Python 28+ · TypeScript 11 (전부 합성 fixture)
+.github/workflows/ci.yml     Python 3.12·3.14 + Node 22
+```
+
+## 다음
+
+- **CT 강도를 Gaussian splat 맥락 레이어로.** 메시는 분할 경계를 정확히 보여주지만 뼈·연조직 속에 어떻게 앉아 있는지는 보여주지 못합니다. 복셀에서 직접 초기화한 splat(학습 없음)을 메시 뒤에 깔아 원본 CT를 맥락으로 씁니다.
+- **측정된 단순화.** 1.5 mm 격자의 marching cubes 출력은 계단 모양이 남고, 조밀한 구조는 뷰어의 메시당 상한에 닿습니다. 스무딩·decimation을 허용하되 원본 복셀과의 거리를 측정해 manifest에 기록합니다.
 
 ## 독립성
 
-[Model X Studio](https://github.com/ashemag/model-x-studio)의 부품 탐색 UI를 참고한 독립 구현입니다. 원 저장소의 코드·차량 모델은 포함하지 않습니다. 회사의 코드·설계 자산은 이 저장소에 포함하지 않습니다.
-
-## 현재 한계
-
-학습 문구는 구조 이름과 출처를 중심으로 한 초기 콘텐츠입니다. 해부학 설명·퀴즈 검수, 여러 사례 탐색, CT slice와 mesh overlay 비교는 후속 작업입니다. TotalSegmentator는 제공된 마스크 범위의 예측 결과이며, 빈 마스크를 해부학적 부재로 해석하지 않습니다. 서로 다른 voxel grid의 자동 정합·재표본화는 지원하지 않습니다. 정적 빌드에는 데이터가 없으며 이 프로젝트에서는 원본·파생 데이터를 배포하지 않습니다. 초기 구현 검증 범위는 [검증 기록](docs/VALIDATION_2026-09-08.md)을 참조하세요.
+[Model X Studio](https://github.com/ashemag/model-x-studio)의 부품 탐색 UI에서 영감을 받은 독립 구현이며, 그 저장소의 코드나 모델은 포함하지 않습니다.

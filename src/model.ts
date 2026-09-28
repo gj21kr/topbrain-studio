@@ -3,9 +3,9 @@ export interface Structure { id: string; name: string; label?: number; group: st
 export interface Manifest { schemaVersion: 1 | 2; title: string; source: string; license: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; provenance: string; structures: Structure[] }
 const segment = (id: string, name: string, group: string, side: string, description: string, color: string, path: Vec3[], radius: number, explode: Vec3): Structure => ({ id, name, group, side, description, color, path: path.map(([x,y,z]) => [-x,y,-z]), radius, explode: [-explode[0],explode[1],-explode[2]], meshName: id });
 export const demo: Manifest = {
-  schemaVersion: 1, title: 'Cerebral circulation', source: 'Procedural teaching schematic', license: 'Local illustrative sample', coordinateSystem: 'glTF-Y-up', units: 'm', provenance: 'Conceptual vessel paths. Not derived from TopBrain, not anatomically validated and not to scale.',
+  schemaVersion: 1, title: 'Cerebral circulation', source: 'Procedural teaching schematic', license: 'Local illustrative sample', coordinateSystem: 'glTF-Y-up', units: 'm', provenance: 'Conceptual vessel paths. Not derived from any dataset, not anatomically validated and not to scale.',
   structures: [
-    segment('left-ica', 'Left internal carotid artery', 'Anterior circulation', 'Left', '앞순환을 살펴보는 시작점입니다. 실제 혈관의 주행·직경·변이는 TopBrain 실데이터를 연결한 뒤 확인해야 합니다.', '#ed8878', [[.58,-2.5,.32],[.62,-1.6,.32],[.65,-.6,.12],[.52,-.05,.36],[.7,.28,.48],[.58,.53,.14]], .115, [.8,0,.1]),
+    segment('left-ica', 'Left internal carotid artery', 'Anterior circulation', 'Left', '앞순환을 살펴보는 시작점입니다. 실제 혈관의 주행·직경·변이는 실제 데이터를 연결한 뒤 확인해야 합니다.', '#ed8878', [[.58,-2.5,.32],[.62,-1.6,.32],[.65,-.6,.12],[.52,-.05,.36],[.7,.28,.48],[.58,.53,.14]], .115, [.8,0,.1]),
     segment('right-ica', 'Right internal carotid artery', 'Anterior circulation', 'Right', '좌우 구조를 선택해 화면에서 비교해 보세요. 현재 좌우 형태는 설명을 위한 대칭 모식도입니다.', '#efa291', [[-.58,-2.5,.32],[-.62,-1.6,.32],[-.65,-.6,.12],[-.52,-.05,.36],[-.7,.28,.48],[-.58,.53,.14]], .115, [-.8,0,.1]),
     segment('left-mca', 'Left middle cerebral artery', 'Anterior circulation', 'Left', '앞순환의 외측 분지를 선택하고 단독 보기로 주변 구조와 구분해 보세요. 임상적 영역은 이 모식도로 판단하지 않습니다.', '#edbd8b', [[.58,.53,.14],[1.05,.65,.16],[1.42,1,.12],[1.6,1.5,.1]], .09, [1,.35,.15]),
     segment('right-mca', 'Right middle cerebral artery', 'Anterior circulation', 'Right', '반대쪽 같은 이름의 구조와 위치 관계를 비교하는 학습 예시입니다.', '#edbd8b', [[-.58,.53,.14],[-1.05,.65,.16],[-1.42,1,.12],[-1.6,1.5,.1]], .09, [-1,.35,.15]),
@@ -16,7 +16,7 @@ export const demo: Manifest = {
     segment('basilar', 'Basilar artery', 'Posterior circulation', 'Midline', '뒤순환의 중앙 경로를 보여주는 모식도입니다. 실데이터의 구조 이름은 가져온 라벨 매핑으로 확인합니다.', '#9ed6d2', [[0,-.25,-.55],[0,.05,-.62],[0,.4,-.55],[0,.65,-.48]], .105, [0,.2,-1]),
     segment('left-pca', 'Left posterior cerebral artery', 'Posterior circulation', 'Left', '뒤쪽으로 향하는 분지의 예시입니다. 회전·단독 보기로 다른 경로와 분리해 살펴보세요.', '#91c8bd', [[0,.65,-.48],[.35,.7,-.5],[.72,.6,-.75],[.95,.88,-1.05]], .075, [.8,.5,-.7]),
     segment('right-pca', 'Right posterior cerebral artery', 'Posterior circulation', 'Right', '반대쪽 뒤순환 분지를 비교하는 예시입니다. 좌우 대칭은 실제 환자의 해부학을 의미하지 않습니다.', '#91c8bd', [[0,.65,-.48],[-.35,.7,-.5],[-.72,.6,-.75],[-.95,.88,-1.05]], .075, [-.8,.5,-.7]),
-    segment('acom', 'Anterior communicating artery', 'Connections', 'Midline', '두 앞쪽 경로의 연결을 개념적으로 보여줍니다. TopBrain 실제 라벨의 존재 여부는 개별 데이터에서 확인해야 합니다.', '#d6b4e0', [[-.23,.77,.42],[0,.8,.45],[.23,.77,.42]], .05, [0,1,.9]),
+    segment('acom', 'Anterior communicating artery', 'Connections', 'Midline', '두 앞쪽 경로의 연결을 개념적으로 보여줍니다. 실제 라벨의 존재 여부는 개별 데이터에서 확인해야 합니다.', '#d6b4e0', [[-.23,.77,.42],[0,.8,.45],[.23,.77,.42]], .05, [0,1,.9]),
   ]
 };
 
@@ -36,8 +36,8 @@ export function validateManifest(value: unknown): Manifest {
     if (s.label !== undefined && (!Number.isSafeInteger(s.label) || Number(s.label) <= 0)) throw new Error('Invalid label ID.');
     if (s.source !== undefined && !text(s.source)) throw new Error('Invalid structure source.');
     // Schema 2 is a combined export. App.tsx renders `s.source ?? manifest.source`,
-    // so a structure without its own source would be shown under the TopBrain
-    // attribution the combined manifest source leads with.
+    // so a structure without its own source would be shown under whatever
+    // attribution the manifest source leads with.
     if (value.schemaVersion === 2 && s.source === undefined) throw new Error('Schema 2 requires an explicit source on every structure.');
     if (s.defaultVisible !== undefined && typeof s.defaultVisible !== 'boolean') throw new Error('Invalid defaultVisible.');
     if (s.defaultOpacity !== undefined && (typeof s.defaultOpacity !== 'number' || !Number.isFinite(s.defaultOpacity) || s.defaultOpacity < 0 || s.defaultOpacity > 1)) throw new Error('Invalid defaultOpacity: expected 0–1.');
