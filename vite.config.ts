@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import type { Connect, Plugin } from 'vite';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const localCase: Connect.NextHandleFunction = (request, response, next) => {
-  const files: Record<string, [string, string]> = { '/local-case/manifest.json': ['local-case.json', 'application/json'], '/local-case/model.glb': ['local-case.glb', 'model/gltf-binary'] };
+  const files: Record<string, [string, string]> = { '/local-case/manifest.json': ['local-case.json', 'application/json'], '/local-case/model.glb': ['local-case.glb', 'model/gltf-binary'], '/local-case/context.ply': ['local-case.context.ply', 'application/octet-stream'], '/local-case/context.json': ['local-case.context.json', 'application/json'] };
   const file = files[request.url ?? ''];
   if (!file) return next();
   const local = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);

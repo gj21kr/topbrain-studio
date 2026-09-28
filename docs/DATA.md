@@ -92,6 +92,56 @@ this. Schema-1 manifests (the landing-page schematic) remain accepted.
 The browser half of every limit above lives in `src/model.ts`; a Python test
 reads that file and fails if either side moves alone.
 
+## CT context layer
+
+`scripts/splat_context.py` reads the same `ct.nii.gz` and writes
+`<stem>.context.ply` and `<stem>.context.json` next to the GLB. The PLY is the
+3D Gaussian Splatting layout (`x y z`, `f_dc_0..2`, `opacity`, `scale_0..2`,
+`rot_0..3`, all float32, binary little-endian) that the viewer's Spark renderer
+loads directly.
+
+```
+python scripts/splat_context.py --subject <dataset>/s0011 --output private-assets/local-case
+```
+
+One Gaussian per selected voxel, initialised from the volume without any
+fitting:
+
+- **Selection** is a transfer function over Hounsfield units: bone (300 HU and
+  above, every voxel, alpha 0.85), contrast-filled vessels and dense soft tissue
+  (150–300 HU, every voxel, alpha 0.45) and soft tissue (−200–150 HU, every
+  third voxel per axis, alpha 0.06). Air and the table fall below the window.
+- **Placement** applies the GLB's own `voxelToGltfM` to the voxel centre, so
+  the layer and the meshes share one frame with no alignment step in the
+  viewer. The viewer gives the layer exactly the centring and scaling it gives
+  the meshes, and no axis flip: the PLY is already glTF Y-up (verified against
+  Spark's decoder, which keeps PLY coordinates as written).
+- **Shape** is the voxel's own frame: the affine's rotation becomes the
+  quaternion, half the (strided) voxel size per axis becomes the scale, so
+  anisotropic and rotated volumes stay correct. Shear is rejected.
+- **Color** is the band's RGB written as SH degree-0 coefficients
+  (`(rgb − 0.5) / 0.2820948`), opacity as its logit, scale as its log.
+
+The context JSON carries the transfer function, the splat count, the CT
+checksum, the voxel transform, one witness splat (voxel index and expected
+position) and the PLY's SHA-256. The viewer accepts a layer only when its JSON
+count equals the count in the PLY header, its CT checksum equals the manifest's
+and its voxel transform equals the manifest's to 1e-9, so a layer from another
+subject or another frame is refused rather than drawn in the wrong place.
+
+The limit is 2,000,000 splats and, in the app, a 120 MB PLY. A whole-body scan
+at 1.5 mm yields about 1.7 million splats; the converter and the viewer both
+check the count, the property layout and finite positions, and the Python test
+reads `src/model.ts` so the two halves cannot drift.
+
+Voxel-sized Gaussians stack along a view ray, so even the 0.06 soft-tissue
+alpha turns opaque through a body; the viewer's Density slider multiplies every
+splat's alpha and opens at 35 %.
+
+The layer is CT intensity, not segmentation: it is meant to show what tissue a
+mesh boundary sits in. Rendering 1.7 million Gaussians needs a real GPU; on
+software WebGL the frame time is seconds.
+
 ## Privacy and provenance
 
 The manifest carries geometry, affines, checksums of the source files, the

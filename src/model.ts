@@ -1,6 +1,8 @@
 export type Vec3 = [number, number, number];
 export interface Structure { id: string; name: string; label?: number; group: string; side: string; description: string; color: string; meshName: string; path?: Vec3[]; radius?: number; explode: Vec3; source?: string; defaultVisible?: boolean; defaultOpacity?: number }
-export interface Manifest { schemaVersion: 1 | 2; title: string; source: string; license: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; provenance: string; structures: Structure[] }
+export interface Manifest { schemaVersion: 1 | 2; title: string; source: string; license: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; provenance: string; structures: Structure[]; metadata?: Record<string, unknown> }
+// The CT context layer: one Gaussian per selected CT voxel in the GLB's own frame.
+export interface ContextLayer { kind: 'gaussian-splat-context'; contextVersion: 1; source: string; license: string; provenance: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; splats: number; subject?: string; ctSha256?: string; voxelToGltfM?: number[][] }
 const segment = (id: string, name: string, group: string, side: string, description: string, color: string, path: Vec3[], radius: number, explode: Vec3): Structure => ({ id, name, group, side, description, color, path: path.map(([x,y,z]) => [-x,y,-z]), radius, explode: [-explode[0],explode[1],-explode[2]], meshName: id });
 export const demo: Manifest = {
   schemaVersion: 1, title: 'Cerebral circulation', source: 'Procedural teaching schematic', license: 'Local illustrative sample', coordinateSystem: 'glTF-Y-up', units: 'm', provenance: 'Conceptual vessel paths. Not derived from any dataset, not anatomically validated and not to scale.',
@@ -84,6 +86,50 @@ export function inspectGlb(buffer: ArrayBuffer): void {
   };
   inspect(json);
   if (json.extensionsUsed?.length || json.extensionsRequired?.length || json.animations?.length || json.skins?.length) throw new Error('Export a static, uncompressed GLB without extensions, skins or animations.');
+}
+
+// The producer half of this check is validate_splat_ply in scripts/splat_context.py;
+// the 2,000,000 limit lives on both sides and a Python test keeps them equal.
+const SPLAT_PROPERTIES = ['x', 'y', 'z', 'f_dc_0', 'f_dc_1', 'f_dc_2', 'opacity', 'scale_0', 'scale_1', 'scale_2', 'rot_0', 'rot_1', 'rot_2', 'rot_3'];
+export function inspectSplatPly(buffer: ArrayBuffer): number {
+  const bytes = new Uint8Array(buffer), marker = new TextEncoder().encode('end_header\n');
+  let end = -1;
+  outer: for (let i = 0; i <= Math.min(bytes.length, 4096) - marker.length; i++) { for (let j = 0; j < marker.length; j++) if (bytes[i + j] !== marker[j]) continue outer; end = i; break; }
+  if (end < 0 || new TextDecoder().decode(bytes.subarray(0, 4)) !== 'ply\n') throw new Error('Invalid splat PLY header.');
+  const lines = new TextDecoder().decode(bytes.subarray(0, end)).split('\n');
+  if (lines[1] !== 'format binary_little_endian 1.0') throw new Error('Splat PLY must be binary little-endian.');
+  const elements = lines.filter(l => l.startsWith('element '));
+  if (elements.length !== 1 || !elements[0].startsWith('element vertex ')) throw new Error('Splat PLY must hold exactly one vertex element.');
+  const count = Number(elements[0].split(' ')[2]);
+  if (!Number.isSafeInteger(count) || count < 1 || count > 2_000_000) throw new Error('Splat PLY must hold 1–2,000,000 splats.');
+  const properties = lines.filter(l => l.startsWith('property '));
+  if (properties.length !== SPLAT_PROPERTIES.length || properties.some((l, i) => l !== `property float ${SPLAT_PROPERTIES[i]}`)) throw new Error('Splat PLY properties differ from the 3DGS layout.');
+  const bodyStart = end + marker.length;
+  if (bytes.length - bodyStart !== count * SPLAT_PROPERTIES.length * 4) throw new Error('Splat PLY body length does not match its header.');
+  const view = new DataView(buffer, buffer.byteLength - (bytes.length - bodyStart));
+  for (let i = 0; i < count; i++) for (let k = 0; k < 3; k++) if (!Number.isFinite(view.getFloat32((i * SPLAT_PROPERTIES.length + k) * 4, true))) throw new Error('Splat PLY contains non-finite positions.');
+  return count;
+}
+
+// The producer half is build_context in scripts/splat_context.py. `splats` is the
+// count inspectSplatPly read from the PLY header, so the JSON cannot describe a
+// different file; the CT checksum and voxel transform must match the GLB manifest
+// so the layer cannot be mixed with a model from another subject or frame.
+export function validateContext(value: unknown, splats: number, manifest: Manifest): ContextLayer {
+  const object = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
+  const text = (x: unknown, limit = 2000): x is string => typeof x === 'string' && x.trim().length > 0 && x.length <= limit;
+  const matrix = (x: unknown): x is number[][] => Array.isArray(x) && x.length === 4 && x.every(row => Array.isArray(row) && row.length === 4 && row.every(n => typeof n === 'number' && Number.isFinite(n)));
+  if (!object(value) || value.kind !== 'gaussian-splat-context' || value.contextVersion !== 1) throw new Error('Context layer requires kind gaussian-splat-context and contextVersion 1.');
+  if (value.coordinateSystem !== 'glTF-Y-up' || value.units !== 'm') throw new Error('Context layer must be in glTF-Y-up metres like the model.');
+  for (const key of ['source', 'license', 'provenance']) if (!text(value[key])) throw new Error(`Context layer is missing ${key}.`);
+  if (value.splats !== splats) throw new Error('Context JSON splat count does not match the PLY.');
+  if (value.subject !== undefined && !text(value.subject, 200)) throw new Error('Invalid context subject.');
+  const meta = manifest.metadata ?? {};
+  if (value.ctSha256 !== undefined && !/^[0-9a-f]{64}$/.test(String(value.ctSha256))) throw new Error('Invalid context CT checksum.');
+  if (typeof meta.ctSha256 === 'string' && typeof value.ctSha256 === 'string' && meta.ctSha256 !== value.ctSha256) throw new Error('Context layer was built from a different CT than the model.');
+  if (value.voxelToGltfM !== undefined && !matrix(value.voxelToGltfM)) throw new Error('Invalid context voxel transform.');
+  if (matrix(meta.voxelToGltfM) && matrix(value.voxelToGltfM) && meta.voxelToGltfM.some((row, i) => row.some((n, j) => Math.abs(n - (value.voxelToGltfM as number[][])[i][j]) > 1e-9))) throw new Error('Context layer and model use different voxel transforms.');
+  return value as unknown as ContextLayer;
 }
 
 export function explosionOffset(vector: Vec3, amount: number, scale = 1): Vec3 {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { demo, validateManifest, inspectGlb, explosionOffset, validateMeshData, initialDisplay, structureOpacity } from '../src/model.ts';
+import { demo, validateManifest, validateContext, inspectGlb, inspectSplatPly, explosionOffset, validateMeshData, initialDisplay, structureOpacity } from '../src/model.ts';
 function glb(json: unknown) { const raw = new TextEncoder().encode(JSON.stringify(json)), length = Math.ceil(raw.length / 4) * 4; const buffer = new ArrayBuffer(20 + length), view = new DataView(buffer); view.setUint32(0,0x46546c67,true);view.setUint32(4,2,true);view.setUint32(8,buffer.byteLength,true);view.setUint32(12,length,true);view.setUint32(16,0x4e4f534a,true);new Uint8Array(buffer,20).fill(32);new Uint8Array(buffer,20).set(raw);return buffer; }
 test('validates provenance, unique IDs, coordinate units and finite vectors', () => {
   assert.equal(validateManifest(demo).structures.length, 12);
@@ -107,4 +107,47 @@ test('selection preserves translucent anatomy and individual opacity overrides',
   assert.equal(structureOpacity(anatomy, new Map([[anatomy.id, .65]]), true, .85), .65);
   assert.equal(structureOpacity(anatomy, new Map([[anatomy.id, 0]]), true, .85), 0);
   assert.equal(structureOpacity(demo.structures[1], new Map(), false, .85), .85);
+});
+
+const SPLAT_PROPS = ['x','y','z','f_dc_0','f_dc_1','f_dc_2','opacity','scale_0','scale_1','scale_2','rot_0','rot_1','rot_2','rot_3'];
+function splatPly(count: number, opts: { header?: string; body?: Uint8Array } = {}) {
+  const header = new TextEncoder().encode(opts.header ?? `ply\nformat binary_little_endian 1.0\nelement vertex ${count}\n${SPLAT_PROPS.map(p => `property float ${p}\n`).join('')}end_header\n`);
+  const body = opts.body ?? new Uint8Array(count * SPLAT_PROPS.length * 4);
+  const out = new Uint8Array(header.length + body.length); out.set(header); out.set(body, header.length);
+  return out.buffer;
+}
+test('splat PLY: accepts the 3DGS layout the converter writes and rejects every deviation', () => {
+  // Mirrors validate_splat_ply in scripts/splat_context.py; a Python test keeps the limit equal.
+  assert.equal(inspectSplatPly(splatPly(2)), 2);
+  const good = new Uint8Array(splatPly(2)), text = new TextDecoder().decode(good);
+  const rewrite = (from: string, to: string) => new TextEncoder().encode(text.replace(from, to)).buffer;
+  assert.throws(() => inspectSplatPly(rewrite('ply\n', 'PLY\n')), /header/);
+  assert.throws(() => inspectSplatPly(rewrite('binary_little_endian', 'ascii')), /little-endian/);
+  assert.throws(() => inspectSplatPly(rewrite('end_header', 'element face 1\nproperty float a\nend_header')), /exactly one vertex element/);
+  assert.throws(() => inspectSplatPly(splatPly(0)), /1–2,000,000/);
+  assert.throws(() => inspectSplatPly(splatPly(2_000_001, { body: new Uint8Array(0) })), /1–2,000,000/);
+  assert.throws(() => inspectSplatPly(rewrite('property float rot_3', 'property float rot_w')), /3DGS layout/);
+  assert.throws(() => inspectSplatPly(rewrite('property float x\n', 'property double x\n')), /3DGS layout/);
+  assert.throws(() => inspectSplatPly(good.slice(0, good.length - 4).buffer), /body length/);
+  const nan = new Float32Array(2 * SPLAT_PROPS.length); nan[0] = NaN;
+  assert.throws(() => inspectSplatPly(splatPly(2, { body: new Uint8Array(nan.buffer) })), /non-finite/);
+});
+
+test('context layer: must describe the PLY it ships with and the CT the model came from', () => {
+  const sha = 'a'.repeat(64), other = 'b'.repeat(64);
+  const transform = [[.0015, 0, 0, -.25], [0, 0, .0015, -.84], [0, -.0015, 0, .23], [0, 0, 0, 1]];
+  const model = validateManifest({ ...demo, metadata: { ctSha256: sha, voxelToGltfM: transform } });
+  const layer = { kind: 'gaussian-splat-context', contextVersion: 1, source: 'TotalSegmentator CT', license: 'CC BY 4.0', provenance: 'Voxels as Gaussians.', coordinateSystem: 'glTF-Y-up', units: 'm', splats: 2, subject: 's0001', ctSha256: sha, voxelToGltfM: transform };
+  assert.equal(validateContext(layer, 2, model).splats, 2);
+  // The manifest without producer metadata (legacy or imported by hand) cannot cross-check and accepts the layer.
+  assert.equal(validateContext(layer, 2, validateManifest(demo)).subject, 's0001');
+  assert.throws(() => validateContext(layer, 3, model), /count does not match/);
+  assert.throws(() => validateContext({ ...layer, ctSha256: other }, 2, model), /different CT/);
+  assert.throws(() => validateContext({ ...layer, voxelToGltfM: transform.map((r, i) => i === 1 ? [0, 0, -.0015, -.84] : r) }, 2, model), /different voxel transforms/);
+  assert.throws(() => validateContext({ ...layer, voxelToGltfM: [[1]] }, 2, model), /voxel transform/);
+  assert.throws(() => validateContext({ ...layer, kind: 'point-cloud' }, 2, model), /gaussian-splat-context/);
+  assert.throws(() => validateContext({ ...layer, contextVersion: 2 }, 2, model), /contextVersion 1/);
+  assert.throws(() => validateContext({ ...layer, units: 'mm' }, 2, model), /metres/);
+  assert.throws(() => validateContext({ ...layer, license: '' }, 2, model), /missing license/);
+  assert.throws(() => validateContext({ ...layer, ctSha256: 'deadbeef' }, 2, model), /CT checksum/);
 });
