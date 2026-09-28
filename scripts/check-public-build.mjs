@@ -14,8 +14,8 @@ const officialArchiveSha256 = '9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854
 // Intentional atlas updates require source/license review and new approved digests.
 const approvedReferenceSha256 = new Map([
   [referenceModel, 'ae7d1930b71d4e8951ec9e84d6e686c7ddf5699172b3652c7c2790e38fede503'],
-  [referenceManifest, '153aa4a132473e8660a05610e57d1119269b2f6d80d16369af58800c3839a7e6'],
-  [referenceAttribution, 'e23c3c689b670cddbdb70c7d298c27dd8dcd3ab7cca6882e8abe5e3091a28152']
+  [referenceManifest, '5133acb5270b24ed22b2b84584792c6eff351fe39da81c799fc06734b3bd457c'],
+  [referenceAttribution, '3a14f643c5a11c4ac4c734a7c3934ce42c6131500ff19968d6f283d402907385']
 ]);
 const fileLimits = new Map([
   ['index.html', 2 * MiB],
@@ -59,7 +59,12 @@ if (![...files].some((file) => /^assets\/[^/]+\.js$/.test(file))) {
 }
 
 for (const [name, expected] of approvedReferenceSha256) {
-  const actual = createHash('sha256').update(await readFile(path.join(dist, name))).digest('hex');
+  const contents = await readFile(path.join(dist, name));
+  // Git may check out text with CRLF on Windows; pin its LF content across platforms.
+  const canonical = name === referenceManifest || name === referenceAttribution
+    ? contents.toString('utf8').replace(/\r\n/g, '\n')
+    : contents;
+  const actual = createHash('sha256').update(canonical).digest('hex');
   if (actual !== expected) throw new Error(`Unreviewed public reference asset: ${name}`);
 }
 
