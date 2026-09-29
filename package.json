@@ -1,5 +1,5 @@
 {
-  "name": "topbrain-studio",
+  "name": "splatomy",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,6 +10,6 @@
     "test": "tsx --test tests/*.test.ts",
     "check:public-build": "node scripts/check-public-build.mjs"
   },
-  "dependencies": { "react": "19.2.8", "react-dom": "19.2.8", "three": "0.185.1", "lucide-react": "^0.577.0" },
+  "dependencies": { "@sparkjsdev/spark": "^2.2.0", "lucide-react": "^0.577.0", "react": "19.2.8", "react-dom": "19.2.8", "three": "0.185.1" },
   "devDependencies": { "@types/node": "^22.19.0", "@types/react": "^19.2.0", "@types/react-dom": "^19.2.0", "@types/three": "^0.185.0", "@vitejs/plugin-react": "6.1.1", "tsx": "^4.21.0", "typescript": "5.9.3", "vite": "8.2.2" }
 }

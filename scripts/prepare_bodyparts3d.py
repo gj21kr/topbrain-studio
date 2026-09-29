@@ -2,7 +2,7 @@
 
 The source is the official, 99% polygon-reduced BodyParts3D 4.0 PART-OF
 archive. Its atomic FJ meshes share one reference coordinate system. This
-script never reads TopBrain data or patient images.
+script never reads dataset CT volumes or patient images.
 
 Run from the repository root with ``python scripts/prepare_bodyparts3d.py``.
 The 62 MB source archive and mapping tables are cached under ignored
@@ -239,7 +239,7 @@ def build_outputs(archive_path: Path, parts_path: Path, elements_path: Path, out
     specs = build_specs(parts, elements)
     binary = io.BytesIO()
     gltf = {
-        "asset": {"version": "2.0", "generator": "TopBrain Studio BodyParts3D reference converter"},
+        "asset": {"version": "2.0", "generator": "Splatomy BodyParts3D reference converter"},
         "scene": 0, "scenes": [{"nodes": list(range(len(specs)))}],
         "nodes": [], "meshes": [], "accessors": [], "bufferViews": [], "buffers": [],
     }
@@ -305,7 +305,7 @@ def build_outputs(archive_path: Path, parts_path: Path, elements_path: Path, out
         "source": SOURCE,
         "license": "CC BY 4.0 International",
         "coordinateSystem": "glTF-Y-up", "units": "m",
-        "provenance": f"Official BodyParts3D 4.0 PART-OF 99% reduced OBJ archive {ARCHIVE_URL}; SHA-256 {ARCHIVE_SHA256}. Atomic FJ files selected using the official partof_element_parts.txt and partof_parts_list_e.txt mappings. Ascending aorta and aortic arch are separate official segments; full aorta extending into the abdomen is omitted. The source omits connectors between common and internal carotids (nearest source vertices 62.5–63.4 mm apart) and between subclavian and vertebral arteries (50.2–50.9 mm apart). Four manifest connectionGuides are explicitly schematic display lines between nearest source vertices; the official GLB geometry is unchanged. Coordinates converted from BodyParts3D mm/Z-up (+X anatomical left, -Y anterior) to glTF m/Y-up (-X anatomical left, -Z anterior); atomic elements joined by reference concept; no mirrored or invented anatomy. Adult male CAD atlas reference surfaces, not patient masks or spatially registered to TopBrain or TotalSegmentator cases. See ATTRIBUTION.txt.",
+        "provenance": f"Official BodyParts3D 4.0 PART-OF 99% reduced OBJ archive {ARCHIVE_URL}; SHA-256 {ARCHIVE_SHA256}. Atomic FJ files selected using the official partof_element_parts.txt and partof_parts_list_e.txt mappings. Ascending aorta and aortic arch are separate official segments; full aorta extending into the abdomen is omitted. The source omits connectors between common and internal carotids (nearest source vertices 62.5–63.4 mm apart) and between subclavian and vertebral arteries (50.2–50.9 mm apart). Four manifest connectionGuides are explicitly schematic display lines between nearest source vertices; the official GLB geometry is unchanged. Coordinates converted from BodyParts3D mm/Z-up (+X anatomical left, -Y anterior) to glTF m/Y-up (-X anatomical left, -Z anterior); atomic elements joined by reference concept; no mirrored or invented anatomy. Adult male CAD atlas reference surfaces, not patient masks or spatially registered to imported TotalSegmentator cases. See ATTRIBUTION.txt.",
         "structures": structures,
         "connectionGuides": connection_guides(guide_vertices),
     }
@@ -322,7 +322,7 @@ def build_outputs(archive_path: Path, parts_path: Path, elements_path: Path, out
         + "Publication: Mitsuhashi et al. (2009), BodyParts3D: 3D structure database for anatomical concepts. https://doi.org/10.1093/nar/gkn613\n\n"
         + "Adaptations: selected named atomic FJ meshes from the 4.0 PART-OF archive, including separate ascending aorta and aortic arch segments and their source-mapped branches; assembled compound skull and brain concepts from the official element table; converted OBJ to one embedded GLB with positions and triangles; converted millimeters/Z-up to meters/Y-up; assigned display colors, opacity and educational groupings. The full aorta, which extends into the abdomen, is omitted to keep the brain legible. Geometry was not mirrored, sculpted or inferred. Individual FMA, BP and FJ IDs are in bodyparts3d.json.\n"
         + "Source coverage: the official PART-OF archive has no matching mesh for the visible bilateral gaps between common and internal carotid arteries (nearest vertices 62.5-63.4 mm apart) or between subclavian and vertebral arteries (50.2-50.9 mm apart). Other nearby named arteries do not connect these trunks. The four connectionGuides records in bodyparts3d.json are explicitly schematic display guides between nearest source vertices; they add no geometry to the official GLB.\n"
-        + "The source is an adult male CAD anatomical reference, not a scan-derived patient brain mask and not spatially registered to any TopBrain or TotalSegmentator case. It is for anatomy education and is not a diagnostic device.\n"
+        + "The source is an adult male CAD anatomical reference, not a scan-derived patient brain mask and not spatially registered to any imported TotalSegmentator case. It is for anatomy education and is not a diagnostic device.\n"
     )
     attr_path = out_dir / "ATTRIBUTION.txt"
     attr_path.write_text(attribution, encoding="utf-8")
