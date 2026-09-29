@@ -8,7 +8,7 @@ import unittest
 import nibabel as nib
 import numpy as np
 
-from scripts.convert_subject import GROUP_EXPLODE, MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, STRUCTURE_GROUPS, anatomy_explode, anatomy_side, classify_structure, convert, label_mesh, manifest_schema_version, validate_binary_layout, validate_embedded_glb, voxel_to_gltf_transform
+from scripts.convert_subject import CATALOGS, GROUP_EXPLODE, MAX_GLB_BYTES, MAX_MESH_INDICES, MAX_MESH_VERTICES, STRUCTURE_GROUPS, anatomy_explode, anatomy_side, classify_structure, convert, label_mesh, manifest_schema_version, validate_binary_layout, validate_embedded_glb, voxel_to_gltf_transform
 
 # The 117 structure keys of the TotalSegmentator "total" task (dataset v2), as
 # published in the tool's class map. The catalog below must place every one.
@@ -110,13 +110,13 @@ class StructureCatalogTests(unittest.TestCase):
         self.assertEqual(visible, {"Skull", "Vertebrae", "Ribs", "Limb bones", "Heart", "Arteries", "Veins"})
 
     def test_side_is_read_from_suffix_and_mid_key_for_ribs(self):
-        for key in ["kidney_right", "rib_right_4", "gluteus_maximus_right", "iliac_vena_right", "KIDNEY_RIGHT"]:
+        for key in ["kidney_right", "rib_right_4", "gluteus_maximus_right", "iliac_vena_right", "KIDNEY_RIGHT", "r_ica", "R_PCOM", "right_va"]:
             with self.subTest(key=key):
                 self.assertEqual(anatomy_side(key), "Right")
-        for key in ["kidney_left", "rib_left_12", "lung_upper_lobe_left", "atrial_appendage_left", "adrenal_gland_left"]:
+        for key in ["kidney_left", "rib_left_12", "lung_upper_lobe_left", "atrial_appendage_left", "adrenal_gland_left", "l_mca", "left_ts"]:
             with self.subTest(key=key):
                 self.assertEqual(anatomy_side(key), "Left")
-        for key in ["aorta", "brain", "skull", "trachea", "vertebrae_C3", "portal_vein_and_splenic_vein", "sternum"]:
+        for key in ["aorta", "brain", "skull", "trachea", "vertebrae_C3", "portal_vein_and_splenic_vein", "sternum", "ba", "acom", "sss"]:
             with self.subTest(key=key):
                 self.assertEqual(anatomy_side(key), "Not side-specific")
         sided = sum(anatomy_side(key) != "Not side-specific" for key in DATASET_KEYS)
@@ -140,10 +140,47 @@ class StructureCatalogTests(unittest.TestCase):
 
     def test_every_group_has_a_non_zero_explode_entry(self):
         """The two tables must agree, or a midline structure could sit still."""
-        self.assertEqual({group for group, *_ in STRUCTURE_GROUPS}, set(GROUP_EXPLODE))
+        catalog_groups = {group for groups in CATALOGS.values() for group, *_ in groups}
+        self.assertEqual(catalog_groups, set(GROUP_EXPLODE))
         for group, offsets in GROUP_EXPLODE.items():
             with self.subTest(group=group):
                 self.assertNotEqual(offsets, (0.0, 0.0))
+
+
+VESSEL_LABELS = (  # TopBrain v1 CT (40), v1 MR (42), v2 unified (36) and TopCoW (13), by release name
+    "BA R-P1P2 L-P1P2 R-ICA R-M1 L-ICA L-M1 R-Pcom L-Pcom Acom R-A1A2 L-A1A2 R-A3 L-A3 3rd-A2 3rd-A3 R-M2 R-M3 L-M2 L-M3 "
+    "R-P3P4 L-P3P4 R-VA L-VA R-SCA L-SCA R-AICA L-AICA R-PICA L-PICA R-AChA L-AChA R-OA L-OA VoG StS ICVs R-BVR L-BVR SSS "
+    "R-ECA L-ECA R-STA L-STA R-MaxA L-MaxA R-MMA L-MMA R-ICA-C6-C7 L-ICA-C6-C7 R-ICA-C1-C5 L-ICA-C1-C5 R-PCA L-PCA R-MCA L-MCA R-ACA L-ACA"
+).split()
+
+
+class VesselCatalogTests(unittest.TestCase):
+    """Every label of the brain vessel releases lands in a named group with the right side."""
+
+    def keys(self):
+        from scripts.prepare_topbrain_subject import structure_key
+        return [structure_key(label) for label in VESSEL_LABELS]
+
+    def test_every_release_label_has_a_group_other_than_the_fallback(self):
+        groups = CATALOGS["brain-vessels"]
+        unplaced = [key for key in self.keys() if classify_structure(key, groups)[0] == "Other anatomy"]
+        self.assertEqual(unplaced, [])
+        self.assertEqual(len(set(self.keys())), len(VESSEL_LABELS), "release labels normalise to distinct keys")
+        self.assertEqual({classify_structure(key, groups)[0] for key in self.keys()}, {group for group, *_ in groups})
+
+    def test_groups_sides_and_opening_view(self):
+        groups = CATALOGS["brain-vessels"]
+        self.assertEqual(classify_structure("r_ica_c6_c7", groups)[0], "Anterior circulation")
+        self.assertEqual(classify_structure("third_a2", groups)[0], "Anterior circulation")
+        self.assertEqual(classify_structure("l_pica", groups)[0], "Posterior circulation")
+        self.assertEqual(classify_structure("ba", groups)[0], "Posterior circulation")
+        self.assertEqual(classify_structure("r_bvr", groups)[0], "Veins & sinuses")
+        self.assertEqual(classify_structure("l_mma", groups)[0], "Extracranial arteries")
+        self.assertEqual(classify_structure("aorta", groups), ("Other anatomy", "#9fb3b0", 0.65, False))
+        visible = {classify_structure(key, groups)[0] for key in self.keys() if classify_structure(key, groups)[3]}
+        self.assertEqual(visible, {"Anterior circulation", "Posterior circulation", "Extracranial arteries"})
+        sided = sum(anatomy_side(key) != "Not side-specific" for key in self.keys())
+        self.assertEqual(sided, len(VESSEL_LABELS) - 8, "BA, Acom, 3rd-A2, 3rd-A3, VoG, StS, ICVs, SSS are the eight midline labels")
 
 
 class EmbeddedGlbTests(unittest.TestCase):

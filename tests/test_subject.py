@@ -181,8 +181,102 @@ class SubjectTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Expected 1"):
             self.mesh()
         self.write("liver.nii.gz", np.zeros_like(self.volume))
-        with self.assertRaisesRegex(ValueError, "Every mask"):
+        with self.assertRaisesRegex(ValueError, "Every structure mask"):
             self.mesh()
         (self.subject / "ct.nii.gz").unlink()
-        with self.assertRaisesRegex(ValueError, "no ct.nii.gz"):
+        with self.assertRaisesRegex(ValueError, "neither ct.nii.gz"):
+            convert(self.subject, self.root / "model")
+
+
+class LabelMapSubjectTests(unittest.TestCase):
+    """A subject is image.nii.gz + labels.nii.gz (one integer per structure) + labelmap.json + dataset.json."""
+
+    DATASET = {
+        "dataset": "Synthetic brain vessel release",
+        "datasetUrl": "https://example.org/dataset",
+        "datasetPaper": "https://example.org/paper",
+        "datasetLicense": "Open use, attribution required",
+        "datasetLicenseUrl": "https://example.org/license",
+        "structureSource": "Synthetic labels",
+        "modality": "MRA",
+        "labelKind": "expert vessel annotation",
+        "catalog": "brain-vessels",
+        "citation": "Someone et al. 2026",
+    }
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.subject = self.root / "topcow_mr_007"
+        self.subject.mkdir()
+        self.affine = np.diag([0.6, 0.6, 0.6, 1.0]); self.affine[:3, 3] = [-60, -70, -40]
+        labels = np.zeros((10, 10, 10), dtype=np.uint8)
+        labels[1:4, 1:4, 1:4] = 4      # R-ICA
+        labels[6:9, 1:4, 1:4] = 6      # L-ICA
+        labels[4:6, 6:9, 6:9] = 1      # BA
+        labels[1:3, 7:9, 1:3] = 21     # SSS
+        self.labels = labels
+        intensities = np.random.default_rng(7).integers(0, 900, labels.shape, dtype=np.int16)
+        intensities[labels > 0] = 1500
+        self.write_nifti(intensities, "image.nii.gz")
+        self.write_nifti(labels, "labels.nii.gz")
+        self.labelmap = {"1": {"key": "ba", "name": "Basilar artery"}, "4": {"key": "r_ica", "name": "Right internal carotid artery"},
+                         "6": {"key": "l_ica", "name": "Left internal carotid artery"}, "21": {"key": "sss", "name": "Superior sagittal sinus"},
+                         "22": {"key": "l_ts", "name": "Left transverse sinus"}}
+        self.write_json("labelmap.json", self.labelmap)
+        self.write_json("dataset.json", self.DATASET)
+
+    def write_nifti(self, volume, name, affine=None):
+        image = nib.Nifti1Image(volume, self.affine if affine is None else affine)
+        image.header["descrip"] = b"PRIVATE_DO_NOT_EXPORT"
+        nib.save(image, self.subject / name)
+
+    def write_json(self, name, data):
+        (self.subject / name).write_text(json.dumps(data), encoding="utf-8")
+
+    def test_every_named_label_becomes_a_structure_with_catalog_display_and_attribution(self):
+        result = convert(self.subject, self.root / "model")
+        by_id = {entry["id"]: entry for entry in result["structures"]}
+        self.assertEqual(sorted(by_id), ["ba", "l_ica", "r_ica", "sss"])
+        self.assertEqual(by_id["r_ica"]["name"], "Right internal carotid artery")
+        self.assertEqual(by_id["r_ica"]["side"], "Right")
+        self.assertEqual(by_id["r_ica"]["group"], "Anterior circulation")
+        self.assertEqual(by_id["ba"]["group"], "Posterior circulation")
+        self.assertEqual(by_id["sss"]["group"], "Veins & sinuses")
+        self.assertFalse(by_id["sss"]["defaultVisible"])
+        self.assertEqual({entry["source"] for entry in result["structures"]}, {"Synthetic labels"})
+        self.assertIn("Expert vessel annotation of Basilar artery from subject topcow_mr_007", by_id["ba"]["description"])
+        meta = result["metadata"]
+        self.assertEqual((meta["subjectLayout"], meta["modality"], meta["imageFile"]), ("labelmap", "MRA", "image.nii.gz"))
+        self.assertEqual(meta["datasetCitation"], "Someone et al. 2026")
+        self.assertEqual([r["structureKey"] for r in meta["skippedEmptyMasks"]], ["l_ts"])
+        self.assertEqual({r["labelValue"] for r in meta["masks"]}, {1, 4, 6, 21})
+        self.assertIn("MRA anatomy", result["title"])
+        self.assertIn("example.org/dataset", result["source"])
+
+    def test_rejects_an_unnamed_label_value_and_a_broken_dataset_json(self):
+        labels = self.labels.copy(); labels[9, 9, 9] = 99
+        self.write_nifti(labels, "labels.nii.gz")
+        with self.assertRaisesRegex(ValueError, "does not name"):
+            convert(self.subject, self.root / "model")
+        self.write_nifti(self.labels, "labels.nii.gz")
+        self.write_json("labelmap.json", {"1": {"key": "../etc", "name": "x"}})
+        with self.assertRaisesRegex(ValueError, "structure key"):
+            convert(self.subject, self.root / "model")
+        self.write_json("labelmap.json", self.labelmap)
+        self.write_json("dataset.json", {**self.DATASET, "catalog": "unknown"})
+        with self.assertRaisesRegex(ValueError, "unknown structure catalog"):
+            convert(self.subject, self.root / "model")
+        self.write_json("dataset.json", {k: v for k, v in self.DATASET.items() if k != "datasetLicense"})
+        with self.assertRaisesRegex(ValueError, "missing datasetLicense"):
+            convert(self.subject, self.root / "model")
+        self.write_json("dataset.json", {**self.DATASET, "modality": "PET"})
+        with self.assertRaisesRegex(ValueError, "modality"):
+            convert(self.subject, self.root / "model")
+
+    def test_labels_must_share_the_image_grid(self):
+        shifted = self.affine.copy(); shifted[0, 3] += 1
+        self.write_nifti(self.labels, "labels.nii.gz", shifted)
+        with self.assertRaisesRegex(ValueError, "identical physical voxel grid"):
             convert(self.subject, self.root / "model")
