@@ -1,6 +1,6 @@
 # Splatomy
 
-공개 의료영상 데이터셋에서 해부 구조를 3D로 꺼내 브라우저에서 탐색하는 개인 프로젝트입니다. Python 변환기가 한 피험자의 분할 라벨 — [TotalSegmentator](https://doi.org/10.5281/zenodo.10047292)의 전신 CT 117구조, 또는 [TopBrain](https://doi.org/10.5281/zenodo.21972006)·[TopCoW](https://doi.org/10.5281/zenodo.15692630)의 CTA/MRA 뇌혈관 36–42구조 — 를 임베디드 GLB와 JSON manifest로 바꾸고, 같은 영상의 강도(CT는 HU, MRA는 강도 백분위)를 Gaussian splat **맥락 레이어**로 만들어 메시와 같은 좌표계에 깔며, three.js + [Spark](https://sparkjs.dev) 뷰어가 둘을 함께 읽습니다. 구조 검색, 그룹별 표시·투명도, 단독 보기, 카메라 프리셋, 분해(explode), 라벨, CT 맥락 on/off·농도를 제공합니다.
+공개 의료영상 데이터셋에서 해부 구조를 3D로 꺼내 브라우저에서 탐색하는 개인 프로젝트입니다. Python 변환기가 한 피험자의 분할 라벨 — [TotalSegmentator](https://doi.org/10.5281/zenodo.10047292)의 전신 CT 117구조, 또는 [TopBrain](https://doi.org/10.5281/zenodo.21972006)·[TopCoW](https://doi.org/10.5281/zenodo.15692630)의 CTA/MRA 뇌혈관 36–42구조 — 를 임베디드 GLB와 JSON manifest로 바꾸고, 같은 영상의 강도(CT는 HU, MRA는 강도 백분위)를 Gaussian splat **맥락 레이어**로 만들어 메시와 같은 좌표계에 깔며, three.js + [Spark](https://sparkjs.dev) 뷰어가 둘을 함께 읽습니다. 구조 검색, 그룹별 표시·투명도, 단독 보기, 카메라 프리셋, 분해(explode), 라벨, 맥락 레이어(CT/CTA/MRA) on/off·농도를 제공합니다.
 
 공개 데모([GitHub Pages](https://gj21kr.github.io/topbrain-studio/))의 첫 화면은 BodyParts3D 4.0 참조 아틀라스(CC BY 4.0)를 열고, 그 요청이 실패하면 코드로 그린 혈관 모식도가 나타납니다. 둘 다 특정 사례의 CT가 아닙니다. 실제 CT 해부학과 splat 레이어는 변환한 데이터를 열었을 때만 나타납니다. 이 도구는 진단 기기가 아닙니다.
 

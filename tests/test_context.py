@@ -97,7 +97,7 @@ class ContextLayerTests(unittest.TestCase):
         # GLB manifest (ctSha256, voxelToGltfM); build_context must keep writing them.
         source = (Path(__file__).resolve().parents[1] / "src" / "model.ts").read_text(encoding="utf-8")
         context = build_context(self.subject, self.root / "case")
-        for key in ("kind", "contextVersion", "coordinateSystem", "units", "source", "license", "provenance", "splats", "subject", "ctSha256", "voxelToGltfM"):
+        for key in ("kind", "contextVersion", "coordinateSystem", "units", "source", "license", "provenance", "splats", "modality", "subject", "ctSha256", "voxelToGltfM"):
             with self.subTest(key=key):
                 self.assertIn(key, context)
                 self.assertIn(key, source)

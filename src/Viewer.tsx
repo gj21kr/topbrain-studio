@@ -107,7 +107,7 @@ export default function Viewer(props: Props) {
           splat = new SplatMesh({ fileBytes: bytes.slice(0), fileType: SplatFileType.PLY, onLoad: () => { renderer.domElement.dataset.contextLoaded = 'true'; } });
           splat.name = 'ct-context'; splat.scale.setScalar(scale); splat.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
           scene.add(splat);
-        }).catch(() => latest.current.onError('CT 맥락 레이어 렌더러를 불러오지 못했습니다. 메시는 계속 볼 수 있습니다.'));
+        }).catch(() => latest.current.onError('맥락 레이어 렌더러를 불러오지 못했습니다. 메시는 계속 볼 수 있습니다.'));
       }
       for (const guide of props.asset.manifest.connectionGuides ?? []) {
         const start = new THREE.Vector3(...guide.fromPoint).sub(center).multiplyScalar(scale);
