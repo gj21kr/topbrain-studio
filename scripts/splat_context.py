@@ -1,10 +1,12 @@
-"""Turn a subject's CT intensities into a Gaussian-splat context layer.
+"""Turn a subject's image intensities into a Gaussian-splat context layer.
 
 Meshes show where each segmented structure ends; they cannot show the bone and
-soft tissue those structures sit in. This writes the CT itself as one Gaussian
-per selected voxel, initialised directly from the volume with no fitting, in the
-same glTF frame as the GLB so the two layers coincide. Appearance is a transfer
-function of Hounsfield units, not a photograph.
+soft tissue those structures sit in. This writes the image itself as one
+Gaussian per selected voxel, initialised directly from the volume with no
+fitting, in the same glTF frame as the GLB so the two layers coincide. For CT
+and CTA the appearance is a transfer function of Hounsfield units; for MRA,
+whose intensities carry no unit, it is a transfer function of the volume's own
+intensity percentiles. Neither is a photograph.
 """
 
 from __future__ import annotations
@@ -24,14 +26,12 @@ import numpy as np
 if __package__ in (None, ""):  # run as `python scripts/splat_context.py`, like convert_subject.py in the docs
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.convert_subject import (
-    DATASET,
-    DATASET_LICENSE,
-    DATASET_LICENSE_URL,
-    DATASET_URL,
     DISCLAIMER,
     UNIT_TO_MM,
     checksum,
+    dataset_attribution,
     resolve_units,
+    subject_layout,
     voxel_to_gltf_transform,
 )
 
@@ -58,6 +58,14 @@ TRANSFER = (
     ("contrast", 150, 300, 1, 0.45, (0.85, 0.55, 0.45)),
     ("soft tissue", -200, 150, 3, 0.06, (0.55, 0.50, 0.50)),
 )
+# MRA (time-of-flight) has no unit: flowing blood is the brightest tissue, so
+# the bands are intensity percentiles of the volume, resolved per subject and
+# recorded. The top percentile keeps full resolution; parenchyma is strided.
+TRANSFER_MRA = (
+    ("vessel", 99.0, 100.0, 1, 0.85, (0.90, 0.45, 0.40)),
+    ("tissue", 55.0, 99.0, 3, 0.05, (0.62, 0.60, 0.62)),
+)
+TRANSFERS = {"CT": ("hu", TRANSFER), "CTA": ("hu", TRANSFER), "MRA": ("percentile", TRANSFER_MRA)}
 
 
 def gaussian_frame(transform: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -95,17 +103,60 @@ def gaussian_frame(transform: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return spacing, quaternion / np.linalg.norm(quaternion)
 
 
-def select_voxels(volume: np.ndarray) -> list[tuple[str, np.ndarray, int, float, tuple[float, float, float]]]:
+def resolve_transfer(volume: np.ndarray, modality: str = "CT") -> tuple[str, list[dict]]:
+    """The transfer function for a modality with every band's bounds resolved to intensities.
+
+    Strides start at the table's values. When the selection would exceed the
+    viewer's splat limit, the band holding the most splats is strided one step
+    further, repeatedly, and both the requested and the resolved stride are
+    recorded: a 0.5 mm braincase CTA has more bone voxels than a 1.5 mm whole
+    body, and the layer must stay honest about what it dropped.
+    """
+    if modality not in TRANSFERS:
+        raise ValueError("Modality must be CT, CTA or MRA.")
+    kind, table = TRANSFERS[modality]
+    bands = []
+    for band, low, high, stride, alpha, rgb in table:
+        entry = {"band": band, "strideRequested": stride, "stride": stride, "alpha": alpha, "rgb": list(rgb), "kind": kind}
+        if kind == "hu":
+            entry |= {"huMin": low, "huMax": high, "low": low, "high": high}
+        else:
+            lo, hi = np.percentile(volume, [low, high]).tolist()
+            entry |= {"percentileMin": low, "percentileMax": high, "low": lo, "high": hi}
+        # The top band is closed at the maximum so the brightest voxel is kept.
+        entry["mask"] = (volume >= entry["low"]) & ((volume <= entry["high"]) if entry["high"] >= volume.max() else (volume < entry["high"]))
+        bands.append(entry)
+    def count(entry):
+        step = entry["stride"]
+        return int(entry["mask"][::step, ::step, ::step].sum())
+    counts = [count(entry) for entry in bands]
+    while sum(counts) > MAX_SPLATS:
+        largest = max(range(len(bands)), key=lambda i: counts[i])
+        if bands[largest]["stride"] >= 8:
+            raise ValueError("The transfer function cannot fit the splat limit even at stride 8.")
+        bands[largest]["stride"] += 1
+        counts[largest] = count(bands[largest])
+    for entry, n in zip(bands, counts):
+        entry["selected"] = n
+    return kind, bands
+
+
+def strided(shape, stride: int) -> np.ndarray:
+    """A keep-mask holding every stride-th voxel per axis."""
+    keep = np.zeros(shape, dtype=bool)
+    keep[::stride, ::stride, ::stride] = True
+    return keep
+
+
+def select_voxels(volume: np.ndarray, modality: str = "CT") -> list[tuple[str, np.ndarray, int, float, tuple[float, float, float]]]:
     """Voxel indices per transfer-function band, already strided."""
     bands = []
-    for band, low, high, stride, alpha, rgb in TRANSFER:
-        mask = (volume >= low) & (volume < high)
+    _, resolved = resolve_transfer(volume, modality)
+    for entry in resolved:
+        mask, stride = entry["mask"], entry["stride"]
         if stride > 1:
-            keep = np.zeros_like(mask)
-            keep[::stride, ::stride, ::stride] = True
-            mask &= keep
-        indices = np.argwhere(mask)
-        bands.append((band, indices, stride, alpha, rgb))
+            mask = mask & strided(mask.shape, stride)
+        bands.append((entry["band"], np.argwhere(mask), stride, entry["alpha"], tuple(entry["rgb"])))
     return bands
 
 
@@ -177,23 +228,25 @@ def validate_splat_ply(payload: bytes) -> int:
 
 
 def build_context(subject_dir: Path, output: Path, units: str | None = None) -> dict:
-    """Write <output>.context.ply and .context.json for one subject."""
+    """Write <output>.context.ply and .context.json for one subject (either layout)."""
     started = time.perf_counter()
-    ct_path = subject_dir / "ct.nii.gz"
-    if not ct_path.is_file():
-        raise ValueError("Subject directory has no ct.nii.gz.")
+    layout = subject_layout(subject_dir)
+    dataset = dataset_attribution(subject_dir, layout)
+    modality = dataset["modality"]
+    ct_path = subject_dir / ("ct.nii.gz" if layout == "masks" else "image.nii.gz")
     image = nib.load(ct_path)
     if len(image.shape) != 3:
-        raise ValueError("Expected a 3-D CT NIfTI.")
+        raise ValueError("Expected a 3-D image NIfTI.")
     if not int(image.header["sform_code"]) and not int(image.header["qform_code"]):
-        raise ValueError("CT must define an explicit sform or qform.")
+        raise ValueError("The image must define an explicit sform or qform.")
     header_unit = image.header.get_xyzt_units()[0]
     unit, units_evidence = resolve_units(header_unit, units)
     transform = voxel_to_gltf_transform(image.affine, unit)
     volume = np.asanyarray(image.dataobj)
     if not np.issubdtype(volume.dtype, np.number) or not np.isfinite(volume).all():
-        raise ValueError("CT intensities must be finite numbers.")
-    bands = select_voxels(volume)
+        raise ValueError("Image intensities must be finite numbers.")
+    kind, resolved = resolve_transfer(volume, modality)
+    bands = [(e["band"], np.argwhere(e["mask"] if e["stride"] == 1 else e["mask"] & strided(e["mask"].shape, e["stride"])), e["stride"], e["alpha"], tuple(e["rgb"])) for e in resolved]
     ply_path = output.with_suffix(".context.ply")
     output.parent.mkdir(parents=True, exist_ok=True)
     total, counts, witness = write_splat_ply(ply_path, transform, bands)
@@ -203,16 +256,19 @@ def build_context(subject_dir: Path, output: Path, units: str | None = None) -> 
     context = {
         "contextVersion": 1,
         "kind": "gaussian-splat-context",
-        "source": f"{DATASET}; {DATASET_URL}",
-        "license": f"{DATASET_LICENSE} — attribution required; {DATASET_LICENSE_URL}",
+        "source": f"{dataset['dataset']}; {dataset['datasetUrl']}",
+        "license": f"{dataset['datasetLicense']}; {dataset['datasetLicenseUrl']}",
         "coordinateSystem": "glTF-Y-up",
         "units": "m",
         "provenance": (
-            "CT intensities of one subject rendered as one Gaussian per selected voxel, "
+            f"{modality} intensities of one subject rendered as one Gaussian per selected voxel, "
             "initialised from the volume without fitting. Color and opacity are a transfer "
-            f"function of Hounsfield units, not a photograph. {DISCLAIMER}"
+            + ("function of Hounsfield units" if kind == "hu" else "function of the volume's intensity percentiles")
+            + f", not a photograph. {DISCLAIMER}"
         ),
         "subject": subject_dir.name,
+        "modality": modality,
+        "imageFile": ct_path.name,
         "ctSha256": checksum(ct_path),
         "ctUnits": header_unit,
         "resolvedUnits": unit,
@@ -221,10 +277,7 @@ def build_context(subject_dir: Path, output: Path, units: str | None = None) -> 
         "voxelToGltfM": transform.tolist(),
         "coordinateRule": "voxel -> full NIfTI affine -> RAS mm -> (x,z,-y)/1000 glTF meters; identical to the GLB manifest so both layers coincide",
         "gaussianFrame": {"voxelSizeM": spacing.tolist(), "rotationWxyz": quaternion.tolist(), "sigma": "half a (strided) voxel per axis"},
-        "transferFunction": [
-            {"band": band, "huMin": low, "huMax": high, "stride": stride, "alpha": alpha, "rgb": list(rgb), "splats": counts[band]}
-            for band, low, high, stride, alpha, rgb in TRANSFER
-        ],
+        "transferFunction": [{k: v for k, v in entry.items() if k not in {"mask", "selected"}} | {"splats": counts[entry["band"]]} for entry in resolved],
         "splats": total,
         "witness": witness,
         "plyBytes": len(payload),
@@ -238,7 +291,7 @@ def build_context(subject_dir: Path, output: Path, units: str | None = None) -> 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--subject", type=Path, required=True, help="Dataset subject directory holding ct.nii.gz")
+    parser.add_argument("--subject", type=Path, required=True, help="Subject directory in either layout (ct.nii.gz, or image.nii.gz + dataset.json)")
     parser.add_argument("--output", type=Path, required=True, help="Output stem shared with convert_subject.py, e.g. private-assets/local-case")
     parser.add_argument("--units", choices=sorted(UNIT_TO_MM), help="Spatial unit override; unset headers are read as mm and recorded")
     args = parser.parse_args()

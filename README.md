@@ -1,6 +1,6 @@
 # Splatomy
 
-공개 CT 데이터셋에서 해부 구조를 3D로 꺼내 브라우저에서 탐색하는 개인 프로젝트입니다. Python 변환기가 [TotalSegmentator 데이터셋](https://doi.org/10.5281/zenodo.10047292)(CC BY 4.0)의 한 피험자 — CT 한 장과 117개 구조의 ground-truth 분할 — 를 임베디드 GLB와 JSON manifest로 바꾸고, 같은 CT의 강도를 Gaussian splat **맥락 레이어**로 만들어 메시와 같은 좌표계에 깔며, three.js + [Spark](https://sparkjs.dev) 뷰어가 둘을 함께 읽습니다. 구조 검색, 그룹별 표시·투명도, 단독 보기, 카메라 프리셋, 분해(explode), 라벨, CT 맥락 on/off·농도를 제공합니다.
+공개 의료영상 데이터셋에서 해부 구조를 3D로 꺼내 브라우저에서 탐색하는 개인 프로젝트입니다. Python 변환기가 한 피험자의 분할 라벨 — [TotalSegmentator](https://doi.org/10.5281/zenodo.10047292)의 전신 CT 117구조, 또는 [TopBrain](https://doi.org/10.5281/zenodo.21972006)·[TopCoW](https://doi.org/10.5281/zenodo.15692630)의 CTA/MRA 뇌혈관 36–42구조 — 를 임베디드 GLB와 JSON manifest로 바꾸고, 같은 영상의 강도(CT는 HU, MRA는 강도 백분위)를 Gaussian splat **맥락 레이어**로 만들어 메시와 같은 좌표계에 깔며, three.js + [Spark](https://sparkjs.dev) 뷰어가 둘을 함께 읽습니다. 구조 검색, 그룹별 표시·투명도, 단독 보기, 카메라 프리셋, 분해(explode), 라벨, CT 맥락 on/off·농도를 제공합니다.
 
 공개 데모([GitHub Pages](https://gj21kr.github.io/topbrain-studio/))의 첫 화면은 BodyParts3D 4.0 참조 아틀라스(CC BY 4.0)를 열고, 그 요청이 실패하면 코드로 그린 혈관 모식도가 나타납니다. 둘 다 특정 사례의 CT가 아닙니다. 실제 CT 해부학과 splat 레이어는 변환한 데이터를 열었을 때만 나타납니다. 이 도구는 진단 기기가 아닙니다.
 
@@ -14,10 +14,13 @@
 
 ## 데이터셋
 
-Wasserthal, J. et al. *TotalSegmentator: Robust Segmentation of 104 Anatomic Structures in CT Images.* Radiology: AI 5(5), 2023. [doi:10.1148/ryai.230024](https://doi.org/10.1148/ryai.230024)
-데이터: [Zenodo 10047292](https://doi.org/10.5281/zenodo.10047292) (v2.0.1, 1,228명, 117구조, 23.6 GB) · 탐색용 [소형판 10047263](https://doi.org/10.5281/zenodo.10047263) (102명, 3.2 GB). 라이선스 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+**TotalSegmentator** — Wasserthal, J. et al. *TotalSegmentator: Robust Segmentation of 104 Anatomic Structures in CT Images.* Radiology: AI 5(5), 2023. [doi:10.1148/ryai.230024](https://doi.org/10.1148/ryai.230024)
+데이터: [Zenodo 10047292](https://doi.org/10.5281/zenodo.10047292) (v2.0.1, 1,228명, 117구조, 23.6 GB) · 탐색용 [소형판 10047263](https://doi.org/10.5281/zenodo.10047263) (102명, 3.2 GB). 라이선스 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). 각 피험자 폴더는 `ct.nii.gz`와 `segmentations/<structure>.nii.gz`(구조별 0/1 마스크)로 구성되고, 변환기는 이 레이아웃을 그대로 읽습니다.
 
-각 피험자 폴더는 `ct.nii.gz`와 `segmentations/<structure>.nii.gz`(구조별 0/1 마스크)로 구성됩니다. 변환기는 이 레이아웃을 그대로 읽습니다.
+**TopBrain 2025 / TopCoW** — Yang, K. et al. *TopBrain segmentation challenge for whole brain vessel anatomy.* medRxiv 2026 · Yang, K. et al. *The TopCoW Challenge: Topology-Aware Circle of Willis Segmentation for CT and MR Angiography.* NEJM AI 3(8), 2026.
+데이터: [TopBrain 데이터 릴리스 21972006](https://doi.org/10.5281/zenodo.21972006) (CTA·MRA 25쌍, 뇌혈관 36클래스 통합 라벨 + 모달리티별 40/42클래스, 2.0 GB) · [TopCoW 릴리스 15692630](https://doi.org/10.5281/zenodo.15692630) (250장, Willis 고리 13클래스, 10.5 GB). 영상은 braincase로 crop·deface된 LPS+ NIfTI이고 라벨은 영상당 정수 라벨맵 하나입니다. 라이선스: [opendata.swiss 조건](https://opendata.swiss/en/terms-of-use)의 "Open use. Must provide the source." — **비상업 사용은 자유, 상업 사용은 데이터 소유자(취리히 대학병원)의 허가 필요.** 이 조건 때문에 TopBrain·TopCoW에서 파생한 GLB·splat은 로컬에만 두고 공개 데모에 싣지 않습니다.
+
+두 데이터셋 모두 혈관이 아닌 구조(두개골·뇌)의 마스크는 뇌혈관 릴리스에 없습니다. 그 맥락은 CTA·MRA 강도 자체를 splat 레이어로 그려서 보여 줍니다.
 
 ## 실행
 
@@ -47,13 +50,23 @@ python scripts/convert_subject.py --subject /path/to/Totalsegmentator_dataset_sm
 
 `private-assets/local-case.glb`와 `.json`이 생기면 앱의 **Open local case**가 로드합니다(개발/preview 서버가 loopback에만 그 경로들을 제공합니다). 다른 파일은 **Import GLB + manifest**로 브라우저 메모리에서 직접 엽니다.
 
-같은 피험자의 CT 맥락 레이어는 두 번째 스크립트가 같은 출력 stem에 붙입니다.
+같은 피험자의 맥락 레이어는 두 번째 스크립트가 같은 출력 stem에 붙입니다.
 
 ```bash
 python scripts/splat_context.py --subject /path/to/Totalsegmentator_dataset_small_v201/s0011 --output private-assets/local-case
 ```
 
-`local-case.context.ply`(3DGS 레이아웃의 PLY)와 `.context.json`이 생기면 **Open local case**가 레이어까지 함께 열고, 가져오기에서는 GLB + manifest + PLY + context JSON 네 파일을 한 번에 선택합니다. 레이어는 선택 사항입니다. 전신 CT 한 명은 약 170만 splat·90 MB, 상한은 2,000,000입니다. 파이프라인과 좌표 계약의 상세는 [docs/DATA.md](docs/DATA.md)에 있습니다.
+`local-case.context.ply`(3DGS 레이아웃의 PLY)와 `.context.json`이 생기면 **Open local case**가 레이어까지 함께 열고, 가져오기에서는 GLB + manifest + PLY + context JSON 네 파일을 한 번에 선택합니다. 레이어는 선택 사항입니다. 전신 CT 한 명은 약 170만 splat·90 MB, 상한은 2,000,000입니다. 상한을 넘는 볼륨은 가장 큰 밴드의 stride를 올려 맞추고 요청값과 실제값을 둘 다 JSON에 적습니다.
+
+TopBrain·TopCoW 릴리스는 라벨맵 하나에 구조가 다 들어 있으므로, 먼저 한 케이스를 피험자 폴더로 꺼냅니다.
+
+```bash
+python scripts/prepare_topbrain_subject.py --release /path/to/TopBrain_Data_Release_Batches1n2nTA36_081726 --patient 001 --modality ct --output private-assets/subjects/topcow_ct_001
+python scripts/convert_subject.py --subject private-assets/subjects/topcow_ct_001 --output private-assets/local-case
+python scripts/splat_context.py --subject private-assets/subjects/topcow_ct_001 --output private-assets/local-case
+```
+
+`--modality mr`은 같은 환자의 MRA를 꺼내고(다른 촬영이라 CTA와 정합돼 있지 않습니다), `--labels v1`은 정맥·두개외 동맥이 포함된 모달리티별 라벨을, `--kind topcow`는 TopCoW 릴리스의 13클래스 라벨을 씁니다. 파이프라인과 좌표 계약의 상세는 [docs/DATA.md](docs/DATA.md)에 있습니다.
 
 ## 공개 데모 게시
 
@@ -89,8 +102,9 @@ Remove-Item Env:GITHUB_PAGES
 ## 구성
 
 ```
-scripts/convert_subject.py   NIfTI → GLB + manifest. 좌표 변환, marching cubes, GLB 검증, 구조 카탈로그
-scripts/splat_context.py     CT → Gaussian splat PLY + context JSON. HU 전달함수, 복셀 프레임의 Gaussian, PLY 검증
+scripts/convert_subject.py   NIfTI → GLB + manifest. 두 피험자 레이아웃(마스크 폴더·라벨맵), 좌표 변환, marching cubes, GLB 검증, 구조 카탈로그 2종
+scripts/prepare_topbrain_subject.py  TopBrain/TopCoW 릴리스의 한 케이스 → 라벨맵 피험자 폴더(labelmap.json·dataset.json 포함)
+scripts/splat_context.py     CT/CTA/MRA → Gaussian splat PLY + context JSON. HU·백분위 전달함수, 자동 stride, PLY 검증
 scripts/prepare_bodyparts3d.py  BodyParts3D 공식 아카이브 → 공개 참조 아틀라스 GLB + manifest + ATTRIBUTION
 scripts/check-public-build.mjs  Pages 배포 전 dist/ 검사: 허용 파일·크기, 참조 파일 digest, base URL
 src/model.ts                 manifest·context 검증, GLB·PLY 사전 검사, connection guide 검증, 뷰어 상태
@@ -98,7 +112,7 @@ src/Viewer.tsx               three.js 씬, 로더, Spark splat 레이어, 분해
 src/App.tsx                  탐색 UI. 참조 아틀라스 자동 로드, 로컬 케이스, 가져오기
 src/FlowPanel.tsx, flow.ts   BP/HR 맥동 미리보기(모식적 파형, 혈역학 계산 아님)
 src/study.ts, arterial.ts    모식도 학습 경로, 동맥 구조 판별
-tests/                       Python 37 · TypeScript 20 (전부 합성 fixture)
+tests/                       Python 50 · TypeScript 20 (전부 합성 fixture)
 .github/workflows/ci.yml     Python 3.12·3.14 + Node 22
 .github/workflows/pages.yml  main → GitHub Pages(테스트·빌드·공개 빌드 검사 통과 시)
 ```
