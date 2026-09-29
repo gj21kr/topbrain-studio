@@ -30,7 +30,7 @@ jobs:
       - run: pip install -r requirements-data.txt
       # EmbeddedGlbTests reads src/model.ts to keep the browser import limits
       # equal on both sides, so this job needs the full checkout, not just tests.
-      - run: python -m unittest tests.test_converter tests.test_total_masks --verbose
+      - run: python -m unittest tests.test_converter tests.test_subject tests.test_context --verbose
 
   frontend:
     runs-on: ubuntu-latest

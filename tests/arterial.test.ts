@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { isArterialStructure } from '../src/arterial.ts';
 
-test('TopBrain artery group pulses abbreviated labels while vein and reference groups do not', () => {
+test('Artery group pulses abbreviated labels while vein and reference groups do not', () => {
   for (const name of ['BA', 'R-ICA', 'L-PCA']) {
     assert.equal(isArterialStructure({ group: 'Arteries', name }), true, name);
   }

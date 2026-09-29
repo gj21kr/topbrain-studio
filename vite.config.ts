@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import type { Connect, Plugin } from 'vite';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const localCase: Connect.NextHandleFunction = (request, response, next) => {
-  const files: Record<string, [string, string]> = { '/local-case/manifest.json': ['topbrain-cta-001.json', 'application/json'], '/local-case/model.glb': ['topbrain-cta-001.glb', 'model/gltf-binary'] };
+  const files: Record<string, [string, string]> = { '/local-case/manifest.json': ['local-case.json', 'application/json'], '/local-case/model.glb': ['local-case.glb', 'model/gltf-binary'], '/local-case/context.ply': ['local-case.context.ply', 'application/octet-stream'], '/local-case/context.json': ['local-case.context.json', 'application/json'] };
   const file = files[request.url ?? ''];
   if (!file) return next();
   const local = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -21,7 +21,8 @@ const localCase: Connect.NextHandleFunction = (request, response, next) => {
 };
 const localCasePlugin: Plugin = { name: 'loopback-local-case', configureServer(server) { server.middlewares.use(localCase); }, configurePreviewServer(server) { server.middlewares.use(localCase); } };
 export default defineConfig({
-  base: process.env.GITHUB_PAGES === 'true' ? '/topbrain-studio/' : '/',
+  // GitHub Pages serves a project site under the repository name; Actions sets GITHUB_REPOSITORY.
+  base: process.env.GITHUB_PAGES === 'true' ? `/${(process.env.GITHUB_REPOSITORY ?? 'gj21kr/topbrain-studio').split('/')[1]}/` : '/',
   plugins: [react(), localCasePlugin],
   server: { host: '127.0.0.1', port: 5181, strictPort: true, fs: { deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/private-assets/**', '**/data/**'] } },
   preview: { host: '127.0.0.1', port: 5181, strictPort: true }

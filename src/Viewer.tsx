@@ -2,14 +2,18 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { demo, explosionOffset, inspectGlb, validateManifest, validateMeshData, structureOpacity, type Manifest, type Structure } from './model';
+import type { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
+import { demo, explosionOffset, inspectGlb, inspectSplatPly, validateContext, validateManifest, validateMeshData, structureOpacity, type ContextLayer, type Manifest, type Structure } from './model';
 import { normalizedPressureAtPhase, PRESSURE_INPUT_LIMITS, type PressureInputs } from './flow';
 import { isArterialStructure } from './arterial';
 
-export interface Asset { manifest: Manifest; scene?: THREE.Group }
-export async function readAsset(manifestData: unknown, buffer: ArrayBuffer): Promise<Asset> {
+export interface ContextFiles { info: unknown; bytes: ArrayBuffer }
+export interface Asset { manifest: Manifest; scene?: THREE.Group; context?: { layer: ContextLayer; bytes: ArrayBuffer } }
+export async function readAsset(manifestData: unknown, buffer: ArrayBuffer, contextFiles?: ContextFiles): Promise<Asset> {
   const manifest = validateManifest(manifestData);
   inspectGlb(buffer);
+  // Validated before the GLB is parsed so a bad layer costs nothing but the header read.
+  const context = contextFiles && { layer: validateContext(contextFiles.info, inspectSplatPly(contextFiles.bytes), manifest), bytes: contextFiles.bytes };
   const manager = new THREE.LoadingManager();
   manager.setURLModifier(() => { throw new Error('Model resource requests are disabled.'); });
   const result = await new GLTFLoader(manager).parseAsync(buffer, '');
@@ -27,7 +31,7 @@ export async function readAsset(manifestData: unknown, buffer: ArrayBuffer): Pro
     if (names.size !== manifest.structures.length || manifest.structures.some(s => !names.has(s.meshName))) throw new Error('Manifest structures must match every GLB mesh exactly.');
     const bounds = new THREE.Box3().setFromObject(result.scene);
     if (bounds.isEmpty() || !Number.isFinite(bounds.getSize(new THREE.Vector3()).length()) || bounds.getSize(new THREE.Vector3()).length() < 1e-8) throw new Error('Model has invalid bounds.');
-    return { manifest, scene: result.scene };
+    return { manifest, scene: result.scene, context };
   } catch (error) { disposeAsset({ manifest, scene: result.scene }); throw error; }
 }
 
@@ -36,7 +40,7 @@ export function disposeAsset(asset: Asset) {
 }
 
 export type FlowParams = PressureInputs;
-interface Props { asset: Asset; selected: string; hidden: Set<string>; isolate: boolean; explosion: number; opacity: number; opacities: Map<string, number>; labels: boolean; autoRotate: boolean; showConnectionGuides?: boolean; flowEnabled?: boolean; flowParams?: FlowParams; flowPhaseOriginMs?: number; focusRegion?: 'all' | 'head' | 'origin'; view: { name: string; tick: number }; onSelect: (id: string) => void; onError: (message: string) => void }
+interface Props { asset: Asset; selected: string; hidden: Set<string>; isolate: boolean; explosion: number; opacity: number; context: boolean; contextOpacity: number; opacities: Map<string, number>; labels: boolean; autoRotate: boolean; showConnectionGuides?: boolean; flowEnabled?: boolean; flowParams?: FlowParams; flowPhaseOriginMs?: number; focusRegion?: 'all' | 'head' | 'origin'; view: { name: string; tick: number }; onSelect: (id: string) => void; onError: (message: string) => void }
 interface Piece { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; original: THREE.Vector3; data: Structure; label: HTMLDivElement; arterial: boolean; illuminated: boolean }
 
 function bounded(value: number | undefined, fallback: number, low: number, high: number): number {
@@ -70,6 +74,7 @@ export default function Viewer(props: Props) {
     const light = new THREE.DirectionalLight(0xffffff, 3); light.position.set(4, 7, 6); scene.add(light);
     const rim = new THREE.DirectionalLight(0x82adc7, 2); rim.position.set(-5, 2, -4); scene.add(rim);
     const pieces: Piece[] = [];
+    let spark: SparkRenderer | undefined, splat: SplatMesh | undefined, disposed = false;
     const connectionGuides: { group: THREE.Group; from: string; to: string }[] = [];
     const explosionScale = 1.5 / Math.max(.000001, ...props.asset.manifest.structures.map(s => Math.hypot(...s.explode)));
     const addPiece = (geometry: THREE.BufferGeometry, data: Structure) => {
@@ -88,6 +93,22 @@ export default function Viewer(props: Props) {
         const geometry = object.geometry.clone().applyMatrix4(object.matrixWorld).translate(-center.x, -center.y, -center.z).scale(scale, scale, scale);
         geometry.computeVertexNormals(); addPiece(geometry, data);
       } });
+      if (props.asset.context) {
+        // The PLY is already in the GLB's glTF Y-up frame (same voxelToGltfM), so the
+        // layer gets exactly the mesh placement, (p - center) * scale, and no axis flip.
+        // Spark transfers the bytes to its decode worker, so it gets a copy: the asset
+        // keeps its buffer and a re-run of this effect can load the layer again.
+        // Spark is its own chunk, fetched only when a case ships a layer: the public
+        // demo never pays for it, and its bundle stays under the Pages size check.
+        const bytes = props.asset.context.bytes;
+        void import('@sparkjsdev/spark').then(({ SparkRenderer, SplatMesh, SplatFileType }) => {
+          if (disposed) return;
+          spark = new SparkRenderer({ renderer }); scene.add(spark);
+          splat = new SplatMesh({ fileBytes: bytes.slice(0), fileType: SplatFileType.PLY, onLoad: () => { renderer.domElement.dataset.contextLoaded = 'true'; } });
+          splat.name = 'ct-context'; splat.scale.setScalar(scale); splat.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+          scene.add(splat);
+        }).catch(() => latest.current.onError('CT 맥락 레이어 렌더러를 불러오지 못했습니다. 메시는 계속 볼 수 있습니다.'));
+      }
       for (const guide of props.asset.manifest.connectionGuides ?? []) {
         const start = new THREE.Vector3(...guide.fromPoint).sub(center).multiplyScalar(scale);
         const end = new THREE.Vector3(...guide.toPoint).sub(center).multiplyScalar(scale);
@@ -192,6 +213,7 @@ export default function Viewer(props: Props) {
         camera.position.copy(target).add(new THREE.Vector3().fromArray(direction[p.view.name] ?? direction.anterior)); controls.target.copy(target); controls.update();
       }
       controls.autoRotate = p.autoRotate;
+      if (splat) { splat.visible = p.context; splat.opacity = p.contextOpacity; }
       controls.update();
       const labelCandidates: { piece: Piece; x: number; y: number; selected: boolean }[] = [];
       const canvasWidth = element.clientWidth, canvasHeight = element.clientHeight;
@@ -244,6 +266,7 @@ export default function Viewer(props: Props) {
       renderer.render(scene, camera);
       renderer.domElement.dataset.rendered = 'true';
       renderer.domElement.dataset.visibleCount = String(pieces.filter(x => x.mesh.visible).length);
+      renderer.domElement.dataset.contextVisible = String(!!splat && splat.visible);
       renderer.domElement.dataset.visibleGuideCount = String(connectionGuides.filter(guide => guide.group.visible).length);
       renderer.domElement.dataset.focusRegion = p.focusRegion ?? 'all';
       renderer.domElement.dataset.cameraPosition = camera.position.toArray().map(value => value.toFixed(2)).join(',');
@@ -254,6 +277,7 @@ export default function Viewer(props: Props) {
       cancelAnimationFrame(frame); resize.disconnect(); controls.dispose(); motionQuery.removeEventListener('change', updateMotion);
       renderer.domElement.removeEventListener('pointerdown', pointerDown); renderer.domElement.removeEventListener('pointerup', pointerUp); renderer.domElement.removeEventListener('webglcontextlost', lost);
       scene.traverse(obj => { if (obj instanceof THREE.Mesh || obj instanceof THREE.LineSegments) { obj.geometry.dispose(); (Array.isArray(obj.material) ? obj.material : [obj.material]).forEach(m => m.dispose()); } });
+      disposed = true; splat?.dispose(); spark?.dispose();
       pieces.forEach(p => p.label.remove()); renderer.dispose(); renderer.domElement.remove();
     };
   }, [props.asset]);

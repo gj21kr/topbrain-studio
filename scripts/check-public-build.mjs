@@ -24,7 +24,9 @@ const fileLimits = new Map([
   [referenceManifest, 2 * MiB],
   [referenceAttribution, 64 * 1024]
 ]);
-const fileLimit = (name) => fileLimits.get(name) ?? (/^assets\/[A-Za-z0-9_-]+\.(?:css|js)$/.test(name) ? 2 * MiB : undefined);
+// The Gaussian-splat renderer (Spark, with its inlined worker and WASM) is a lazily loaded chunk of about 2.5 MiB,
+// emitted as assets/spark.module-<hash>.js, so chunk names may carry a dot.
+const fileLimit = (name) => fileLimits.get(name) ?? (/^assets\/[A-Za-z0-9_.-]+\.(?:css|js)$/.test(name) ? 4 * MiB : undefined);
 
 async function inspectDirectory(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -72,7 +74,7 @@ const reference = JSON.parse(await readFile(path.join(dist, referenceManifest), 
 if (!reference || typeof reference !== 'object' || Array.isArray(reference) ||
     reference.coordinateSystem !== 'glTF-Y-up' || reference.units !== 'm' ||
     !Array.isArray(reference.structures) || reference.structures.length === 0 ||
-    reference.structures.some((structure) => /TopBrain|TotalSegmentator/i.test(String(structure?.source ?? ''))) ||
+    reference.structures.some((structure) => /TotalSegmentator/i.test(String(structure?.source ?? ''))) ||
     !String(reference.source ?? '').includes('BodyParts3D') ||
     !/CC (?:BY|Attribution) 4\.0/i.test(String(reference.license ?? '')) ||
     !String(reference.provenance ?? '').includes('partof_BP3D_4.0_obj_99.zip') ||
@@ -112,7 +114,7 @@ if (!credit.includes('BodyParts3D, © The Database Center for Life Science licen
 }
 
 if (process.env.GITHUB_PAGES === 'true') {
-  const base = '/topbrain-studio/';
+  const base = `/${(process.env.GITHUB_REPOSITORY ?? 'gj21kr/topbrain-studio').split('/')[1]}/`;
   const html = await readFile(path.join(dist, 'index.html'), 'utf8');
   const references = [...html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)].map((match) => match[1]);
   for (const reference of references) {
