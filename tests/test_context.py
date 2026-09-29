@@ -109,17 +109,22 @@ class ContextLayerTests(unittest.TestCase):
         self.assertIn("export function validateContext", source)
 
     def test_rejects_a_missing_ct_a_2d_volume_a_sheared_affine_and_too_many_splats(self):
-        with self.assertRaisesRegex(ValueError, "no ct.nii.gz"):
+        with self.assertRaisesRegex(ValueError, "neither ct.nii.gz"):
             build_context(self.root / "nowhere", self.root / "case")
         sheared = self.affine.copy()
         sheared[0, 1] = 0.4
         nib.save(nib.Nifti1Image(self.volume, sheared), self.subject / "ct.nii.gz")
         with self.assertRaisesRegex(ValueError, "shear-free"):
             build_context(self.subject, self.root / "case")
+        # More bone voxels than the viewer accepts: the bone band is strided, not refused, and says so.
         side = int(np.ceil((MAX_SPLATS + 1) ** (1 / 3)))
         nib.save(nib.Nifti1Image(np.full((side, side, side), 900, dtype=np.int16), self.affine), self.subject / "ct.nii.gz")
-        with self.assertRaisesRegex(ValueError, "exceed the viewer"):
-            build_context(self.subject, self.root / "case")
+        context = build_context(self.subject, self.root / "case")
+        bone = next(b for b in context["transferFunction"] if b["band"] == "bone")
+        self.assertEqual((bone["strideRequested"], bone["stride"]), (1, 2))
+        self.assertEqual(context["splats"], bone["splats"])
+        self.assertLessEqual(context["splats"], MAX_SPLATS)
+        self.assertEqual(bone["splats"], int(np.ceil(side / 2)) ** 3)
         nib.save(nib.Nifti1Image(np.full((4, 4, 4), -1000, dtype=np.int16), self.affine), self.subject / "ct.nii.gz")
         with self.assertRaisesRegex(ValueError, "selected no voxels"):
             build_context(self.subject, self.root / "case")
@@ -165,3 +170,89 @@ class SplatPlyBoundaryTests(unittest.TestCase):
         self.assertIn("'" + "', '".join(PLY_PROPERTIES) + "'", source)
         self.assertIn("export function inspectSplatPly", source)
 
+
+
+class MraContextTests(unittest.TestCase):
+    """MRA has no Hounsfield scale: the bands are the volume's own intensity percentiles."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.subject = self.root / "topcow_mr_003"
+        self.subject.mkdir()
+        affine = np.diag([0.5, 0.5, 0.5, 1.0])
+        volume = np.random.default_rng(3).integers(0, 500, (12, 12, 12), dtype=np.int16)
+        volume[5:7, 5:7, 0:6] = 2000  # 24 bright voxels, more than the top 1% of 1728
+        self.volume = volume
+        image = nib.Nifti1Image(volume, affine); image.header.set_xyzt_units("mm")
+        nib.save(image, self.subject / "image.nii.gz")
+        nib.save(nib.Nifti1Image(np.zeros_like(volume), affine), self.subject / "labels.nii.gz")
+        (self.subject / "labelmap.json").write_text(json.dumps({"1": {"key": "ba", "name": "Basilar artery"}}), encoding="utf-8")
+        (self.subject / "dataset.json").write_text(json.dumps({
+            "dataset": "Synthetic MRA release", "datasetUrl": "https://example.org/d", "datasetPaper": "https://example.org/p",
+            "datasetLicense": "Open use", "datasetLicenseUrl": "https://example.org/l", "structureSource": "Synthetic labels",
+            "modality": "MRA", "labelKind": "annotation", "catalog": "brain-vessels"}), encoding="utf-8")
+
+    def test_percentile_bands_are_resolved_per_subject_and_recorded(self):
+        context = build_context(self.subject, self.root / "case")
+        self.assertEqual(context["modality"], "MRA")
+        self.assertIn("intensity percentiles", context["provenance"])
+        bands = {b["band"]: b for b in context["transferFunction"]}
+        self.assertEqual(set(bands), {"vessel", "tissue"})
+        vessel, tissue = bands["vessel"], bands["tissue"]
+        self.assertEqual((vessel["kind"], vessel["percentileMin"], vessel["percentileMax"]), ("percentile", 99.0, 100.0))
+        np.testing.assert_allclose([vessel["low"], vessel["high"]], np.percentile(self.volume, [99.0, 100.0]))
+        # The brightest voxels are in the vessel band, the top band being closed at the maximum.
+        self.assertEqual(vessel["high"], 2000)
+        self.assertGreaterEqual(vessel["splats"], 24)
+        self.assertEqual(vessel["stride"], 1)
+        self.assertEqual(tissue["stride"], 3)
+        self.assertEqual(context["splats"], vessel["splats"] + tissue["splats"])
+        self.assertEqual(validate_splat_ply((self.root / "case.context.ply").read_bytes()), context["splats"])
+        self.assertNotIn("huMin", vessel)
+
+    def test_ct_bands_stay_hounsfield_and_unknown_modalities_are_refused(self):
+        from scripts.splat_context import resolve_transfer
+        kind, bands = resolve_transfer(self.volume, "CT")
+        self.assertEqual(kind, "hu")
+        self.assertEqual([(b["band"], b["huMin"], b["huMax"]) for b in bands], [("bone", 300, 4000), ("contrast", 150, 300), ("soft tissue", -200, 150)])
+        with self.assertRaisesRegex(ValueError, "Modality"):
+            resolve_transfer(self.volume, "PET")
+
+
+class SplatBudgetTests(unittest.TestCase):
+    """When a volume holds more voxels than the viewer accepts, strides grow and say so."""
+
+    def test_the_largest_band_is_strided_until_the_selection_fits(self):
+        import scripts.splat_context as module
+        from scripts.splat_context import resolve_transfer
+        volume = np.full((30, 30, 30), 500, dtype=np.int16)   # 18,000 bone voxels once the contrast slab is cut out
+        volume[:, :, :10] = 200                                 # 9,000 contrast voxels
+        original = module.MAX_SPLATS
+        module.MAX_SPLATS = 12_000
+        try:
+            _, bands = resolve_transfer(volume, "CT")
+        finally:
+            module.MAX_SPLATS = original
+        bone, contrast, soft = bands
+        # 27,000 selected at stride 1 is over 12,000; bone (the largest band) goes to stride 2,
+        # which keeps 15 x 15 x 10 = 2,250 of its 18,000 voxels; 2,250 + 9,000 fits, so it stops there.
+        self.assertEqual((bone["strideRequested"], bone["stride"], bone["selected"]), (1, 2, 2250))
+        self.assertEqual((contrast["strideRequested"], contrast["stride"], contrast["selected"]), (1, 1, 9000))
+        self.assertEqual(soft["selected"], 0)
+        _, untouched = resolve_transfer(volume, "CT")
+        self.assertEqual([b["stride"] for b in untouched], [1, 1, 3])
+        self.assertEqual(sum(b["selected"] for b in untouched), 27_000)
+
+    def test_a_volume_that_cannot_fit_even_at_stride_eight_is_refused(self):
+        import scripts.splat_context as module
+        from scripts.splat_context import resolve_transfer
+        volume = np.full((16, 16, 16), 500, dtype=np.int16)
+        original = module.MAX_SPLATS
+        module.MAX_SPLATS = 1
+        try:
+            with self.assertRaisesRegex(ValueError, "stride 8"):
+                resolve_transfer(volume, "CT")
+        finally:
+            module.MAX_SPLATS = original

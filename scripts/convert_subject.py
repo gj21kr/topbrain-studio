@@ -1,4 +1,10 @@
-"""Convert one TotalSegmentator dataset subject to a static embedded GLB and manifest.
+"""Convert one dataset subject to a static embedded GLB and manifest.
+
+Two subject layouts are read. TotalSegmentator: ct.nii.gz plus one binary mask
+per structure in segmentations/. Label map: image.nii.gz, labels.nii.gz (one
+integer per structure), labelmap.json (value -> structure key) and dataset.json
+(attribution, license, modality), as scripts/prepare_topbrain_subject.py writes
+for the TopBrain and TopCoW releases.
 
 Research and education use only, not for clinical decision. Each structure is
 extracted by marching cubes at the dataset's native voxel grid. Any smoothing,
@@ -43,6 +49,20 @@ DATASET_PAPER = "https://doi.org/10.1148/ryai.230024"
 DATASET_LICENSE = "CC BY 4.0"
 DATASET_LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
 DISCLAIMER = "Research and education use only, not for clinical decision."
+# Attribution for the TotalSegmentator layout. A label-map subject carries its own
+# dataset.json with the same keys, written by the dataset's prepare script.
+TOTALSEGMENTATOR = {
+    "dataset": DATASET,
+    "datasetUrl": DATASET_URL,
+    "datasetPaper": DATASET_PAPER,
+    "datasetLicense": DATASET_LICENSE,
+    "datasetLicenseUrl": DATASET_LICENSE_URL,
+    "structureSource": "TotalSegmentator dataset",
+    "modality": "CT",
+    "labelKind": "ground-truth segmentation",
+    "catalog": "totalsegmentator",
+}
+DATASET_JSON_KEYS = ("dataset", "datasetUrl", "datasetPaper", "datasetLicense", "datasetLicenseUrl", "structureSource", "modality", "labelKind", "catalog")
 
 # How the dataset's 117 structure keys become viewer groups. Each entry is
 # (group, color, default opacity, visible at load, matcher); the first match
@@ -65,6 +85,26 @@ STRUCTURE_GROUPS = (
     ("Muscles", "#b5655a", 0.5, False, lambda k: k.startswith(("gluteus_", "iliopsoas_", "autochthon_"))),
 )
 FALLBACK_GROUP = ("Other anatomy", "#9fb3b0", 0.65, False)
+# Brain vessel catalog for the TopBrain/TopCoW label maps. Keys are the release
+# label names as prepare_topbrain_subject.py normalises them: lower case, "-"
+# to "_", a leading "3rd" spelled "third" (r_ica_c6_c7, l_pcom, third_a2, sss).
+# A key is placed by the tokens between its underscores. Arteries open visible;
+# the venous system starts hidden.
+def _tokens(key: str) -> set[str]:
+    return set(key.split("_"))
+
+
+ANTERIOR_TOKENS = {"ica", "mca", "m1", "m2", "m3", "aca", "a1a2", "a3", "a2", "acom", "acha", "oa"}
+POSTERIOR_TOKENS = {"ba", "pca", "p1p2", "p3p4", "pcom", "va", "sca", "aica", "pica"}
+VENOUS_TOKENS = {"vog", "sts", "icvs", "bvr", "sss"}
+EXTRACRANIAL_TOKENS = {"eca", "sta", "maxa", "mma"}
+VESSEL_GROUPS = (
+    ("Veins & sinuses", "#5b7fc4", 0.85, False, lambda k: bool(_tokens(k) & VENOUS_TOKENS)),
+    ("Extracranial arteries", "#c98b6b", 0.9, True, lambda k: bool(_tokens(k) & EXTRACRANIAL_TOKENS)),
+    ("Posterior circulation", "#e08a5b", 1.0, True, lambda k: bool(_tokens(k) & POSTERIOR_TOKENS)),
+    ("Anterior circulation", "#d9534f", 1.0, True, lambda k: bool(_tokens(k) & ANTERIOR_TOKENS)),
+)
+CATALOGS = {"totalsegmentator": STRUCTURE_GROUPS, "brain-vessels": VESSEL_GROUPS}
 # Rigid separation per group as (superior, posterior) offsets in glTF metres;
 # the lateral component comes from the structure's side. Nested anatomy parts
 # along the body axis, organs swing anteriorly, muscles posteriorly.
@@ -83,6 +123,10 @@ GROUP_EXPLODE = {
     "Urinary": (-0.04, 0.0),
     "Glands": (0.0, -0.02),
     "Muscles": (-0.02, 0.03),
+    "Anterior circulation": (0.0, -0.02),
+    "Posterior circulation": (0.0, 0.02),
+    "Veins & sinuses": (0.02, 0.0),
+    "Extracranial arteries": (-0.02, 0.0),
 }
 
 
@@ -299,21 +343,22 @@ def validate_embedded_glb(payload: bytes, expected_names: set[str]) -> dict:
 def anatomy_side(name: str) -> str:
     """Laterality from the structure key's _left/_right or _l/_r suffix.
 
-    The dataset names sided structures with a suffix (kidney_left, rib_right_4
-    is the one exception where the side sits mid-key, handled below). Casing is
-    normalised here rather than relied on from the caller.
+    TotalSegmentator names sided structures with a suffix (kidney_left; rib_right_4
+    is the one exception where the side sits mid-key). The brain vessel label maps
+    use a prefix (r_ica, l_pcom). Casing is normalised here rather than relied on
+    from the caller.
     """
     lowered = name.lower()
-    if lowered.endswith(("_r", "_right")) or "_right_" in lowered:
+    if lowered.endswith(("_r", "_right")) or "_right_" in lowered or lowered.startswith(("r_", "right_")):
         return "Right"
-    if lowered.endswith(("_l", "_left")) or "_left_" in lowered:
+    if lowered.endswith(("_l", "_left")) or "_left_" in lowered or lowered.startswith(("l_", "left_")):
         return "Left"
     return "Not side-specific"
 
 
-def classify_structure(key: str) -> tuple[str, str, float, bool]:
+def classify_structure(key: str, groups=STRUCTURE_GROUPS) -> tuple[str, str, float, bool]:
     """Group, color, default opacity and initial visibility for a structure key."""
-    for group, color, opacity, visible, matches in STRUCTURE_GROUPS:
+    for group, color, opacity, visible, matches in groups:
         if matches(key):
             return group, color, opacity, visible
     return FALLBACK_GROUP
@@ -372,14 +417,11 @@ def manifest_schema_version(structures: list[dict]) -> int:
     return 2
 
 
-def mesh_structures(
-    scene: trimesh.Scene,
-    masks_dir: Path,
-    reference: nib.spatialimages.SpatialImage,
-    unit: str,
-    subject: str,
-) -> tuple[list[dict], list[dict], list[dict]]:
-    """Mesh every non-empty binary mask that shares the CT's physical voxel grid.
+KEY_PATTERN = r"[A-Za-z][A-Za-z0-9_]{0,95}"
+
+
+def mask_files(masks_dir: Path, reference, unit: str):
+    """The TotalSegmentator layout: one binary NIfTI per structure in segmentations/.
 
     Grid equality is required for every mask; it is what lets structures from
     separate files share one coordinate frame without registration.
@@ -392,17 +434,12 @@ def mesh_structures(
     if not files or len(files) > 500:
         raise ValueError("Expected 1–500 NIfTI mask files in segmentations/.")
     expected_transform = voxel_to_gltf_transform(reference.affine, unit)
-    structures, records, skipped, ids = [], [], [], set()
     for path in files:
         name = re.sub(r"\.nii(?:\.gz)?$", "", path.name, flags=re.IGNORECASE)
         # Only anatomical structure keys may enter the manifest, never arbitrary
         # source paths or free-text headers. Names follow per-structure exports.
-        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,95}", name):
+        if not re.fullmatch(KEY_PATTERN, name):
             raise ValueError("Mask filenames must be anatomical structure keys.")
-        key = name.lower()
-        if key in ids:
-            raise ValueError("Duplicate structure key.")
-        ids.add(key)
         image = nib.load(path)
         if len(image.shape) != 3 or image.shape != reference.shape:
             raise ValueError("Masks must have the identical voxel grid as the CT.")
@@ -428,11 +465,118 @@ def mesh_structures(
             "voxelToGltfM": transform.tolist(),
             "gridCheck": "identical dimensions and physical voxel-to-world transform",
         }
+        yield name, name.replace("_", " "), volume, record
+
+
+def label_map_masks(subject_dir: Path, reference, unit: str):
+    """The label-map layout: labels.nii.gz holds one integer per structure.
+
+    labelmap.json maps each integer to a structure key and display name, as the
+    dataset's prepare script wrote it. Every value the map names must appear in
+    the volume's own value set or be reported as empty, and every non-zero value
+    in the volume must be named, so a label the catalog does not know is never
+    silently dropped.
+    """
+    labels_path = subject_dir / "labels.nii.gz"
+    if not labels_path.is_file():
+        raise ValueError("Subject has no labels.nii.gz.")
+    label_map = json.loads((subject_dir / "labelmap.json").read_text(encoding="utf-8"))
+    if not isinstance(label_map, dict) or not label_map or len(label_map) > 500:
+        raise ValueError("labelmap.json must map 1–500 label values to structures.")
+    image = nib.load(labels_path)
+    if len(image.shape) != 3 or image.shape != reference.shape:
+        raise ValueError("Labels must have the identical voxel grid as the image.")
+    if not int(image.header["sform_code"]) and not int(image.header["qform_code"]):
+        raise ValueError("Labels require an explicit sform or qform.")
+    label_unit = image.header.get_xyzt_units()[0]
+    transform = voxel_to_gltf_transform(image.affine, unit if label_unit == "unknown" else label_unit)
+    if not np.allclose(transform, voxel_to_gltf_transform(reference.affine, unit), rtol=0, atol=1e-8):
+        raise ValueError("Labels must have the identical physical voxel grid as the image.")
+    volume = np.asanyarray(image.dataobj)
+    if not np.issubdtype(volume.dtype, np.integer) or volume.min() < 0:
+        raise ValueError("Labels must be non-negative integers.")
+    present = {int(v) for v in np.unique(volume) if v}
+    named = {}
+    for value, entry in label_map.items():
+        if not re.fullmatch(r"[1-9][0-9]{0,5}", str(value)) or not isinstance(entry, dict):
+            raise ValueError("labelmap.json keys must be positive integers mapping to objects.")
+        key, name = entry.get("key"), entry.get("name")
+        if not isinstance(key, str) or not re.fullmatch(KEY_PATTERN, key) or not isinstance(name, str) or not name.strip() or len(name) > 120:
+            raise ValueError("Every label needs a structure key and a display name.")
+        named[int(value)] = (key, name)
+    unnamed = sorted(present - set(named))
+    if unnamed:
+        raise ValueError(f"labels.nii.gz holds values {unnamed[:5]} that labelmap.json does not name.")
+    digest = checksum(labels_path)
+    for value in sorted(named):
+        key, name = named[value]
+        record = {
+            "structureKey": key,
+            "labelValue": value,
+            "sourceSha256": digest,
+            "sourceUnits": label_unit,
+            "sourceShapeVoxels": list(image.shape),
+            "sourceAffine": image.affine.tolist(),
+            "voxelToGltfM": transform.tolist(),
+            "gridCheck": "identical dimensions and physical voxel-to-world transform",
+        }
+        yield key, name, (volume == value).astype(np.uint8), record
+
+
+def subject_layout(subject_dir: Path) -> str:
+    """Which layout a subject directory uses; label-map subjects carry dataset.json."""
+    if (subject_dir / "ct.nii.gz").is_file():
+        return "masks"
+    if (subject_dir / "image.nii.gz").is_file() and (subject_dir / "dataset.json").is_file():
+        return "labelmap"
+    raise ValueError("Subject directory has neither ct.nii.gz nor image.nii.gz with dataset.json.")
+
+
+def dataset_attribution(subject_dir: Path, layout: str) -> dict:
+    """The dataset entry a manifest is attributed to, validated field by field."""
+    if layout == "masks":
+        return dict(TOTALSEGMENTATOR)
+    data = json.loads((subject_dir / "dataset.json").read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("dataset.json must be an object.")
+    for key in DATASET_JSON_KEYS:
+        if not isinstance(data.get(key), str) or not data[key].strip() or len(data[key]) > 2000:
+            raise ValueError(f"dataset.json is missing {key}.")
+    if data["catalog"] not in CATALOGS:
+        raise ValueError("dataset.json names an unknown structure catalog.")
+    if data["modality"] not in {"CT", "CTA", "MRA"}:
+        raise ValueError("dataset.json modality must be CT, CTA or MRA.")
+    return {key: data[key] for key in DATASET_JSON_KEYS} | {"citation": data.get("citation", "")}
+
+
+def mesh_structures(
+    scene: trimesh.Scene,
+    masks,
+    reference: nib.spatialimages.SpatialImage,
+    unit: str,
+    subject: str,
+    dataset: dict = TOTALSEGMENTATOR,
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """Mesh every non-empty structure mask that shares the image's physical voxel grid.
+
+    `masks` is a segmentations/ directory (TotalSegmentator layout) or any
+    iterable of (key, display name, binary volume, source record).
+    """
+    if isinstance(masks, Path):
+        masks = mask_files(masks, reference, unit)
+    groups = CATALOGS[dataset["catalog"]]
+    structures, records, skipped, ids = [], [], [], set()
+    for name, display, volume, record in masks:
+        key = name.lower()
+        if key in ids:
+            raise ValueError("Duplicate structure key.")
+        ids.add(key)
+        transform = np.asarray(record["voxelToGltfM"])
         if not np.any(volume):
             skipped.append(record)
             LOGGER.debug("Skipped empty mask %s.", name)
             continue
-        group, color, opacity, visible = classify_structure(key)
+        group, color, opacity, visible = classify_structure(key, groups)
         mesh, geometry = label_mesh(volume, 1, transform)
         mesh.visual = trimesh.visual.TextureVisuals(
             material=trimesh.visual.material.PBRMaterial(
@@ -449,18 +593,18 @@ def mesh_structures(
             {
                 "id": key,
                 "meshName": key,
-                "name": name.replace("_", " "),
+                "name": display,
                 "group": group,
                 "side": side,
                 "color": color,
                 "explode": anatomy_explode(group, side),
-                "source": "TotalSegmentator dataset",
+                "source": dataset["structureSource"],
                 "sourceShortName": name,
                 "defaultVisible": visible,
                 "defaultOpacity": opacity,
                 "description": (
-                    f"Ground-truth segmentation of {name.replace('_', ' ')} from subject "
-                    f"{subject} of the {DATASET}. Geometry follows the native voxel grid; "
+                    f"{dataset['labelKind'].capitalize()} of {display} from subject "
+                    f"{subject} of the {dataset['dataset']}. Geometry follows the native voxel grid; "
                     f"segmentation accuracy is the dataset's own. {DISCLAIMER}"
                 ),
                 "geometry": geometry,
@@ -468,30 +612,29 @@ def mesh_structures(
         )
         records.append(record)
     if not structures:
-        raise ValueError("Every mask in segmentations/ is empty.")
+        raise ValueError("Every structure mask is empty.")
     return structures, records, skipped
 
 
 def convert(subject_dir: Path, output: Path, units: str | None = None) -> dict:
-    """Convert one dataset subject directory (ct.nii.gz + segmentations/) to GLB + manifest."""
+    """Convert one dataset subject directory (either layout) to GLB + manifest."""
     started = time.perf_counter()
-    ct_path = subject_dir / "ct.nii.gz"
-    if not ct_path.is_file():
-        raise ValueError("Subject directory has no ct.nii.gz.")
+    layout = subject_layout(subject_dir)
+    dataset = dataset_attribution(subject_dir, layout)
+    ct_path = subject_dir / ("ct.nii.gz" if layout == "masks" else "image.nii.gz")
     image = nib.load(ct_path)
     if len(image.shape) != 3:
-        raise ValueError("Expected a 3-D CT NIfTI.")
+        raise ValueError("Expected a 3-D image NIfTI.")
     if not int(image.header["sform_code"]) and not int(image.header["qform_code"]):
         raise ValueError(
-            "CT must define an explicit sform or qform; fallback geometry is not accepted."
+            "The image must define an explicit sform or qform; fallback geometry is not accepted."
         )
     header_unit = image.header.get_xyzt_units()[0]
     unit, units_evidence = resolve_units(header_unit, units)
     transform = voxel_to_gltf_transform(image.affine, unit)
     scene = trimesh.Scene()
-    structures, mask_records, skipped = mesh_structures(
-        scene, subject_dir / "segmentations", image, unit, subject_dir.name
-    )
+    masks = subject_dir / "segmentations" if layout == "masks" else label_map_masks(subject_dir, image, unit)
+    structures, mask_records, skipped = mesh_structures(scene, masks, image, unit, subject_dir.name, dataset)
     payload = scene.export(file_type="glb", include_normals=True)
     validate_embedded_glb(payload, {entry["meshName"] for entry in structures})
     dependencies = {
@@ -500,24 +643,28 @@ def convert(subject_dir: Path, output: Path, units: str | None = None) -> dict:
     }
     manifest = {
         "schemaVersion": manifest_schema_version(structures),
-        "title": f"Splatomy · CT anatomy, subject {subject_dir.name}",
-        "source": f"{DATASET}; {DATASET_URL}",
-        "license": f"{DATASET_LICENSE} — attribution required; {DATASET_LICENSE_URL}",
+        "title": f"Splatomy · {dataset['modality']} anatomy, subject {subject_dir.name}",
+        "source": f"{dataset['dataset']}; {dataset['datasetUrl']}",
+        "license": f"{dataset['datasetLicense']}; {dataset['datasetLicenseUrl']}",
         "coordinateSystem": "glTF-Y-up",
         "units": "m",
         "provenance": (
-            f"Ground-truth segmentations of one subject from the public {DATASET}, "
+            f"{dataset['labelKind'].capitalize()}s of one subject from the public {dataset['dataset']}, "
             f"converted at the native voxel grid without registration or resampling. "
             f"Coverage is the subject's scan field of view; an empty mask is not evidence "
             f"of absent anatomy. {DISCLAIMER}"
         ),
         "structures": structures,
         "metadata": {
-            "dataset": DATASET,
-            "datasetUrl": DATASET_URL,
-            "datasetPaper": DATASET_PAPER,
-            "datasetLicense": DATASET_LICENSE,
-            "datasetLicenseUrl": DATASET_LICENSE_URL,
+            "dataset": dataset["dataset"],
+            "datasetUrl": dataset["datasetUrl"],
+            "datasetPaper": dataset["datasetPaper"],
+            "datasetLicense": dataset["datasetLicense"],
+            "datasetLicenseUrl": dataset["datasetLicenseUrl"],
+            "datasetCitation": dataset.get("citation", ""),
+            "modality": dataset["modality"],
+            "labelKind": dataset["labelKind"],
+            "subjectLayout": layout,
             "subject": subject_dir.name,
             "ctSha256": checksum(ct_path),
             "ctUnits": header_unit,
@@ -525,6 +672,7 @@ def convert(subject_dir: Path, output: Path, units: str | None = None) -> dict:
             "unitsEvidence": units_evidence,
             "ctShapeVoxels": list(image.shape),
             "ctAffine": image.affine.tolist(),
+            "imageFile": ct_path.name,
             "ctAffineSpace": "NIfTI RAS+ in resolvedUnits",
             "ctAxisCodes": list(nib.aff2axcodes(image.affine)),
             "ctSpacing": nib.affines.voxel_sizes(image.affine).tolist(),
@@ -572,7 +720,7 @@ def main() -> None:
         "--subject",
         type=Path,
         required=True,
-        help="Dataset subject directory holding ct.nii.gz and segmentations/",
+        help="Subject directory: ct.nii.gz + segmentations/ (TotalSegmentator) or image.nii.gz + labels.nii.gz + labelmap.json + dataset.json",
     )
     parser.add_argument(
         "--output",
