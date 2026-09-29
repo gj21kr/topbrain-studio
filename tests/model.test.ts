@@ -162,4 +162,8 @@ test('context layer: must describe the PLY it ships with and the CT the model ca
   assert.throws(() => validateContext({ ...layer, units: 'mm' }, 2, model), /metres/);
   assert.throws(() => validateContext({ ...layer, license: '' }, 2, model), /missing license/);
   assert.throws(() => validateContext({ ...layer, ctSha256: 'deadbeef' }, 2, model), /CT checksum/);
+  // The modality is optional (older layers are CT) but must be one the transfer functions know.
+  assert.equal(validateContext({ ...layer, modality: 'MRA' }, 2, model).modality, 'MRA');
+  assert.equal(validateContext(layer, 2, model).modality, undefined);
+  assert.throws(() => validateContext({ ...layer, modality: 'PET' }, 2, model), /modality/);
 });

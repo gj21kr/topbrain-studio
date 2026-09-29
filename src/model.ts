@@ -3,7 +3,8 @@ export interface Structure { id: string; name: string; label?: number; group: st
 export interface ConnectionGuide { id: string; from: string; to: string; fromPoint: Vec3; toPoint: Vec3; gapMm: number; kind: 'schematic'; description: string }
 export interface Manifest { schemaVersion: 1 | 2; title: string; source: string; license: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; provenance: string; structures: Structure[]; connectionGuides?: ConnectionGuide[]; metadata?: Record<string, unknown> }
 // The CT context layer: one Gaussian per selected CT voxel in the GLB's own frame.
-export interface ContextLayer { kind: 'gaussian-splat-context'; contextVersion: 1; source: string; license: string; provenance: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; splats: number; subject?: string; ctSha256?: string; voxelToGltfM?: number[][] }
+export type ContextModality = 'CT' | 'CTA' | 'MRA';
+export interface ContextLayer { kind: 'gaussian-splat-context'; contextVersion: 1; source: string; license: string; provenance: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; splats: number; modality?: ContextModality; subject?: string; ctSha256?: string; voxelToGltfM?: number[][] }
 const segment = (id: string, name: string, group: string, side: string, description: string, color: string, path: Vec3[], radius: number, explode: Vec3): Structure => ({ id, name, group, side, description, color, path: path.map(([x,y,z]) => [-x,y,-z]), radius, explode: [-explode[0],explode[1],-explode[2]], meshName: id });
 export const demo: Manifest = {
   schemaVersion: 1, title: 'Cerebral circulation', source: 'Procedural teaching schematic', license: 'Local illustrative sample', coordinateSystem: 'glTF-Y-up', units: 'm', provenance: 'Conceptual vessel paths. Not derived from any dataset, not anatomically validated and not to scale.',
@@ -139,6 +140,8 @@ export function validateContext(value: unknown, splats: number, manifest: Manife
   for (const key of ['source', 'license', 'provenance']) if (!text(value[key])) throw new Error(`Context layer is missing ${key}.`);
   if (value.splats !== splats) throw new Error('Context JSON splat count does not match the PLY.');
   if (value.subject !== undefined && !text(value.subject, 200)) throw new Error('Invalid context subject.');
+  // The modality names the layer in the UI ("MRA context"); an older JSON without it is CT.
+  if (value.modality !== undefined && !['CT', 'CTA', 'MRA'].includes(value.modality as string)) throw new Error('Context modality must be CT, CTA or MRA.');
   const meta = manifest.metadata ?? {};
   if (value.ctSha256 !== undefined && !/^[0-9a-f]{64}$/.test(String(value.ctSha256))) throw new Error('Invalid context CT checksum.');
   if (typeof meta.ctSha256 === 'string' && typeof value.ctSha256 === 'string' && meta.ctSha256 !== value.ctSha256) throw new Error('Context layer was built from a different CT than the model.');
