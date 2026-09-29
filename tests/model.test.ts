@@ -77,6 +77,18 @@ test('schema 2 requires every structure to name its own source', () => {
   assert.doesNotThrow(() => validateManifest(demo));
 });
 
+test('schematic gap guides require valid, measured endpoints and honest provenance', () => {
+  const structures = [demo.structures[0], demo.structures[1]].map(s => ({ ...s, source: 'Public atlas' }));
+  const guide = { id: 'neck-gap', from: structures[0].id, to: structures[1].id, fromPoint: [0, 0, 0], toPoint: [0, .063, 0], gapMm: 63, kind: 'schematic', description: 'The source atlas omits this neck segment.' };
+  const manifest = { ...demo, schemaVersion: 2, structures, connectionGuides: [guide] };
+  assert.equal(validateManifest(manifest).connectionGuides?.[0].gapMm, 63);
+  assert.throws(() => validateManifest({ ...manifest, connectionGuides: [{ ...guide, kind: 'source' }] }), /schematic/);
+  assert.throws(() => validateManifest({ ...manifest, connectionGuides: [{ ...guide, to: 'missing' }] }), /endpoints/);
+  assert.throws(() => validateManifest({ ...manifest, connectionGuides: [{ ...guide, gapMm: 12 }] }), /does not match/);
+  assert.throws(() => validateManifest({ ...manifest, connectionGuides: [{ ...guide, fromPoint: [0, Infinity, 0] }] }), /coordinates/);
+  assert.throws(() => validateManifest({ ...manifest, connectionGuides: [guide, guide] }), /duplicate/);
+});
+
 test('rejects malformed source and display defaults without coercing values', () => {
   for (const source of ['', ' ', 2]) assert.throws(() => validateManifest({ ...demo, structures: [{ ...demo.structures[0], source }] }), /source/);
   for (const defaultVisible of ['false', 0, null]) assert.throws(() => validateManifest({ ...demo, structures: [{ ...demo.structures[0], defaultVisible }] }), /defaultVisible/);
