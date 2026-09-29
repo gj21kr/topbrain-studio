@@ -13,9 +13,9 @@ const referenceAttribution = 'reference/ATTRIBUTION.txt';
 const officialArchiveSha256 = '9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854931dd5e3eb61c97';
 // Intentional atlas updates require source/license review and new approved digests.
 const approvedReferenceSha256 = new Map([
-  [referenceModel, 'ae7d1930b71d4e8951ec9e84d6e686c7ddf5699172b3652c7c2790e38fede503'],
-  [referenceManifest, '5133acb5270b24ed22b2b84584792c6eff351fe39da81c799fc06734b3bd457c'],
-  [referenceAttribution, '3a14f643c5a11c4ac4c734a7c3934ce42c6131500ff19968d6f283d402907385']
+  [referenceModel, '91e0728981428b0eca88fa9818f3902c39a87a0d35485cc9ecd24aca8ee83b82'],
+  [referenceManifest, '7d31bdbed3b0b6795fd4ed36a5324c91829f22cb18b45f43848b1545f2c48094'],
+  [referenceAttribution, '07dba8cbad86b5fd09fd821fa1b9d2469b280f80b75f9bec9830724d02e2749b']
 ]);
 const fileLimits = new Map([
   ['index.html', 2 * MiB],
