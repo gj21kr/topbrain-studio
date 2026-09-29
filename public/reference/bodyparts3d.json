@@ -1,0 +1,1266 @@
+{
+  "schemaVersion": 2,
+  "title": "BodyParts3D 4.0 brain and arterial supply reference",
+  "source": "BodyParts3D 4.0 PART-OF Tree reference anatomy (DBCLS)",
+  "license": "CC BY 4.0 International",
+  "coordinateSystem": "glTF-Y-up",
+  "units": "m",
+  "provenance": "Official BodyParts3D 4.0 PART-OF 99% reduced OBJ archive https://dbarchive.biosciencedbc.jp/data/bodyparts3d/20130619/partof_BP3D_4.0_obj_99.zip; SHA-256 9fbc713fffeee924a5a657d9813d84d7eb957bded63adb854931dd5e3eb61c97. Atomic FJ files selected using the official partof_element_parts.txt and partof_parts_list_e.txt mappings. Ascending aorta and aortic arch are separate official segments; full aorta extending into the abdomen is omitted. The source omits connectors between common and internal carotids (nearest source vertices 62.5–63.4 mm apart) and between subclavian and vertebral arteries (50.2–50.9 mm apart). Four manifest connectionGuides are explicitly schematic display lines between nearest source vertices; the official GLB geometry is unchanged. Coordinates converted from BodyParts3D mm/Z-up (+X anatomical left, -Y anterior) to glTF m/Y-up (-X anatomical left, -Z anterior); atomic elements joined by reference concept; no mirrored or invented anatomy. Adult male CAD atlas reference surfaces, not patient masks or spatially registered to TopBrain or TotalSegmentator cases. See ATTRIBUTION.txt.",
+  "structures": [
+    {
+      "id": "right-aca",
+      "name": "Right anterior cerebral artery",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "description": "앞대뇌동맥의 오른쪽 참조 구조입니다.",
+      "color": "#e87866",
+      "meshName": "right-aca",
+      "explode": [
+        0.7,
+        0.25,
+        -0.15
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1654",
+          "conceptId": "FMA50029",
+          "representationId": "BP7691"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50029/BP9915; atomic OBJ: FJ1654"
+    },
+    {
+      "id": "left-aca",
+      "name": "Left anterior cerebral artery",
+      "group": "Anterior circulation",
+      "side": "Left",
+      "description": "앞대뇌동맥의 왼쪽 참조 구조입니다.",
+      "color": "#fa9b77",
+      "meshName": "left-aca",
+      "explode": [
+        -0.7,
+        0.25,
+        -0.15
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1654M",
+          "conceptId": "FMA50030",
+          "representationId": "BP10243"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50030/BP10243; atomic OBJ: FJ1654M"
+    },
+    {
+      "id": "acom",
+      "name": "Anterior communicating artery",
+      "group": "Anterior circulation",
+      "side": "Midline",
+      "description": "양쪽 앞대뇌동맥 사이의 연결 구조입니다.",
+      "color": "#eac075",
+      "meshName": "acom",
+      "explode": [
+        0.0,
+        0.45,
+        -0.45
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1655",
+          "conceptId": "FMA50169",
+          "representationId": "BP6762"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50169/BP6762; atomic OBJ: FJ1655"
+    },
+    {
+      "id": "right-mca",
+      "name": "Right middle cerebral artery",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "description": "중대뇌동맥의 오른쪽 참조 구조입니다. 이 판본에는 상응하는 왼쪽 합성 구조가 없습니다.",
+      "color": "#f5aa8e",
+      "meshName": "right-mca",
+      "explode": [
+        0.9,
+        0.15,
+        -0.1
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1662",
+          "conceptId": "FMA50377",
+          "representationId": "BP7697"
+        },
+        {
+          "fileId": "FJ1663",
+          "conceptId": "FMA50377",
+          "representationId": "BP7697"
+        },
+        {
+          "fileId": "FJ1692",
+          "conceptId": "FMA50366",
+          "representationId": "BP7706"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50082/BP9813; atomic OBJ: FJ1662, FJ1663, FJ1692"
+    },
+    {
+      "id": "right-ica",
+      "name": "Right internal carotid artery",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "description": "오른쪽 내경동맥의 참조 요소입니다. 아래쪽 온목동맥과 연결되는 경부 메쉬가 원본에 없습니다.",
+      "color": "#d97168",
+      "meshName": "right-ica",
+      "explode": [
+        0.85,
+        -0.25,
+        0.1
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1682",
+          "conceptId": "FMA3949",
+          "representationId": "BP6825"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA3949/BP9518; atomic OBJ: FJ1682"
+    },
+    {
+      "id": "left-ica",
+      "name": "Left internal carotid artery",
+      "group": "Anterior circulation",
+      "side": "Left",
+      "description": "왼쪽 내경동맥의 참조 요소입니다. 아래쪽 온목동맥과 연결되는 경부 메쉬가 원본에 없습니다.",
+      "color": "#eb8b7e",
+      "meshName": "left-ica",
+      "explode": [
+        -0.85,
+        -0.25,
+        0.1
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1682M",
+          "conceptId": "FMA4062",
+          "representationId": "BP9516"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA4062/BP9516; atomic OBJ: FJ1682M"
+    },
+    {
+      "id": "right-pcom",
+      "name": "Right posterior communicating artery",
+      "group": "Connections",
+      "side": "Right",
+      "description": "오른쪽 뒤교통동맥의 참조 구조입니다.",
+      "color": "#e4bc79",
+      "meshName": "right-pcom",
+      "explode": [
+        0.55,
+        0.2,
+        0.55
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1713",
+          "conceptId": "FMA50085",
+          "representationId": "BP7710"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50085/BP7710; atomic OBJ: FJ1713"
+    },
+    {
+      "id": "left-pcom",
+      "name": "Left posterior communicating artery",
+      "group": "Connections",
+      "side": "Left",
+      "description": "왼쪽 뒤교통동맥의 참조 구조입니다.",
+      "color": "#f1ce90",
+      "meshName": "left-pcom",
+      "explode": [
+        -0.55,
+        0.2,
+        0.55
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1713M",
+          "conceptId": "FMA50086",
+          "representationId": "BP9658"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50086/BP9658; atomic OBJ: FJ1713M"
+    },
+    {
+      "id": "right-pca",
+      "name": "Right posterior cerebral artery",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "description": "오른쪽 뒤대뇌동맥과 분지의 참조 요소입니다.",
+      "color": "#84c5bb",
+      "meshName": "right-pca",
+      "explode": [
+        0.8,
+        0.4,
+        0.55
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1723",
+          "conceptId": "FMA50639",
+          "representationId": "BP7712"
+        },
+        {
+          "fileId": "FJ1661",
+          "conceptId": "FMA50678",
+          "representationId": "BP7694"
+        },
+        {
+          "fileId": "FJ1675",
+          "conceptId": "FMA50670",
+          "representationId": "BP7699"
+        },
+        {
+          "fileId": "FJ1677",
+          "conceptId": "FMA50684",
+          "representationId": "BP7700"
+        },
+        {
+          "fileId": "FJ1678",
+          "conceptId": "FMA50684",
+          "representationId": "BP7700"
+        },
+        {
+          "fileId": "FJ1680",
+          "conceptId": "FMA50680",
+          "representationId": "BP7702"
+        },
+        {
+          "fileId": "FJ1687",
+          "conceptId": "FMA50643",
+          "representationId": "BP7695"
+        },
+        {
+          "fileId": "FJ1691",
+          "conceptId": "FMA50645",
+          "representationId": "BP7701"
+        },
+        {
+          "fileId": "FJ1720",
+          "conceptId": "FMA50664",
+          "representationId": "BP7711"
+        },
+        {
+          "fileId": "FJ1727",
+          "conceptId": "FMA50672",
+          "representationId": "BP7714"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50584/BP7696; atomic OBJ: FJ1723, FJ1661, FJ1675, FJ1677, FJ1678, FJ1680, FJ1687, FJ1691, FJ1720, FJ1727; precommunicating PCA segment FMA50639/BP7712"
+    },
+    {
+      "id": "left-pca",
+      "name": "Left posterior cerebral artery",
+      "group": "Posterior circulation",
+      "side": "Left",
+      "description": "왼쪽 뒤대뇌동맥과 분지의 참조 요소입니다.",
+      "color": "#9bdbca",
+      "meshName": "left-pca",
+      "explode": [
+        -0.8,
+        0.4,
+        0.55
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1723M",
+          "conceptId": "FMA50640",
+          "representationId": "BP9514"
+        },
+        {
+          "fileId": "FJ1661M",
+          "conceptId": "FMA50679",
+          "representationId": "BP10014"
+        },
+        {
+          "fileId": "FJ1675M",
+          "conceptId": "FMA50671",
+          "representationId": "BP10043"
+        },
+        {
+          "fileId": "FJ1677M",
+          "conceptId": "FMA50685",
+          "representationId": "BP9900"
+        },
+        {
+          "fileId": "FJ1678M",
+          "conceptId": "FMA50685",
+          "representationId": "BP9900"
+        },
+        {
+          "fileId": "FJ1680M",
+          "conceptId": "FMA50681",
+          "representationId": "BP10104"
+        },
+        {
+          "fileId": "FJ1687M",
+          "conceptId": "FMA50644",
+          "representationId": "BP9702"
+        },
+        {
+          "fileId": "FJ1691M",
+          "conceptId": "FMA50646",
+          "representationId": "BP9797"
+        },
+        {
+          "fileId": "FJ1720M",
+          "conceptId": "FMA50665",
+          "representationId": "BP9429"
+        },
+        {
+          "fileId": "FJ1727M",
+          "conceptId": "FMA50673",
+          "representationId": "BP10163"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50585/BP9430; atomic OBJ: FJ1723M, FJ1661M, FJ1675M, FJ1677M, FJ1678M, FJ1680M, FJ1687M, FJ1691M, FJ1720M, FJ1727M; precommunicating PCA segment FMA50640/BP9514"
+    },
+    {
+      "id": "basilar",
+      "name": "Basilar artery",
+      "group": "Posterior circulation",
+      "side": "Midline",
+      "description": "뇌바닥동맥 몸통의 참조 요소입니다.",
+      "color": "#75bcb8",
+      "meshName": "basilar",
+      "explode": [
+        0.0,
+        -0.2,
+        0.95
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1672",
+          "conceptId": "FMA50542",
+          "representationId": "BP6766"
+        },
+        {
+          "fileId": "FJ1844",
+          "conceptId": "FMA50542",
+          "representationId": "BP6766"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50542/BP9431; atomic OBJ: FJ1672, FJ1844"
+    },
+    {
+      "id": "right-va",
+      "name": "Right vertebral artery",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "description": "오른쪽 척추동맥의 참조 요소입니다. 빗장밑동맥에서 이 요소로 이어지는 하부 경부 메쉬가 원본에 없습니다.",
+      "color": "#73a8c8",
+      "meshName": "right-va",
+      "explode": [
+        0.6,
+        -0.55,
+        0.4
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1725",
+          "conceptId": "FMA3958",
+          "representationId": "BP6765"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA3958/BP9432; atomic OBJ: FJ1725"
+    },
+    {
+      "id": "left-va",
+      "name": "Left vertebral artery",
+      "group": "Posterior circulation",
+      "side": "Left",
+      "description": "왼쪽 척추동맥의 참조 요소입니다. 빗장밑동맥에서 이 요소로 이어지는 하부 경부 메쉬가 원본에 없습니다.",
+      "color": "#91bad7",
+      "meshName": "left-va",
+      "explode": [
+        -0.6,
+        -0.55,
+        0.4
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1725M",
+          "conceptId": "FMA4066",
+          "representationId": "BP9323"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA4066/BP9323; atomic OBJ: FJ1725M"
+    },
+    {
+      "id": "right-sca",
+      "name": "Right superior cerebellar artery",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "description": "오른쪽 위소뇌동맥의 참조 요소입니다.",
+      "color": "#8fd5d0",
+      "meshName": "right-sca",
+      "explode": [
+        0.65,
+        -0.2,
+        0.8
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1726",
+          "conceptId": "FMA50574",
+          "representationId": "BP7713"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50574/BP7713; atomic OBJ: FJ1726"
+    },
+    {
+      "id": "left-sca",
+      "name": "Left superior cerebellar artery",
+      "group": "Posterior circulation",
+      "side": "Left",
+      "description": "왼쪽 위소뇌동맥의 참조 요소입니다.",
+      "color": "#ade2d6",
+      "meshName": "left-sca",
+      "explode": [
+        -0.65,
+        -0.2,
+        0.8
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ1726M",
+          "conceptId": "FMA50575",
+          "representationId": "BP10235"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50575/BP10235; atomic OBJ: FJ1726M"
+    },
+    {
+      "id": "ascending-aorta",
+      "name": "Ascending aorta",
+      "group": "Proximal arterial supply",
+      "side": "Midline",
+      "description": "오름대동맥의 공식 참조 요소입니다. 전체 대동맥은 포함하지 않습니다.",
+      "color": "#be7b70",
+      "meshName": "ascending-aorta",
+      "explode": [
+        0.0,
+        -0.9,
+        -0.4
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ3413",
+          "conceptId": "FMA3736",
+          "representationId": "BP10408"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA3736/BP10408; atomic OBJ: FJ3413"
+    },
+    {
+      "id": "aortic-arch",
+      "name": "Arch of aorta",
+      "group": "Proximal arterial supply",
+      "side": "Midline",
+      "description": "대동맥활의 공식 참조 요소입니다.",
+      "color": "#d18d79",
+      "meshName": "aortic-arch",
+      "explode": [
+        0.0,
+        -0.65,
+        -0.55
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ3411",
+          "conceptId": "FMA3768",
+          "representationId": "BP10404"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA3768/BP10404; atomic OBJ: FJ3411"
+    },
+    {
+      "id": "brachiocephalic",
+      "name": "Brachiocephalic artery",
+      "group": "Proximal arterial supply",
+      "side": "Midline",
+      "description": "팔머리동맥 줄기의 공식 참조 요소입니다.",
+      "color": "#e2a48b",
+      "meshName": "brachiocephalic",
+      "explode": [
+        0.35,
+        -0.45,
+        -0.25
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ3417",
+          "conceptId": "FMA3932",
+          "representationId": "BP9434"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA3932/BP9434; atomic OBJ: FJ3417"
+    },
+    {
+      "id": "right-cca",
+      "name": "Right common carotid artery",
+      "group": "Proximal arterial supply",
+      "side": "Right",
+      "description": "오른쪽 온목동맥의 공식 참조 요소입니다. 위쪽 내경동맥까지 약 6 cm의 원본 모델 공백이 있습니다.",
+      "color": "#e69b7d",
+      "meshName": "right-cca",
+      "explode": [
+        0.85,
+        -0.15,
+        -0.1
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ3564",
+          "conceptId": "FMA3941",
+          "representationId": "BP9519"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA3941/BP9519; atomic OBJ: FJ3564"
+    },
+    {
+      "id": "left-cca",
+      "name": "Left common carotid artery",
+      "group": "Proximal arterial supply",
+      "side": "Left",
+      "description": "왼쪽 온목동맥의 공식 참조 요소입니다. 위쪽 내경동맥까지 약 6 cm의 원본 모델 공백이 있습니다.",
+      "color": "#f0af90",
+      "meshName": "left-cca",
+      "explode": [
+        -0.85,
+        -0.15,
+        -0.1
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ3483",
+          "conceptId": "FMA4058",
+          "representationId": "BP9517"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA4058/BP9517; atomic OBJ: FJ3483"
+    },
+    {
+      "id": "right-subclavian",
+      "name": "Right subclavian artery",
+      "group": "Proximal arterial supply",
+      "side": "Right",
+      "description": "오른쪽 빗장밑동맥의 공식 참조 요소입니다. 척추동맥과 연결되는 하부 경부 메쉬가 원본에 없습니다.",
+      "color": "#c98f91",
+      "meshName": "right-subclavian",
+      "explode": [
+        1.1,
+        -0.35,
+        0.1
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ3579",
+          "conceptId": "FMA3953",
+          "representationId": "BP9433"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA3953/BP9433; atomic OBJ: FJ3579"
+    },
+    {
+      "id": "left-subclavian",
+      "name": "Left subclavian artery",
+      "group": "Proximal arterial supply",
+      "side": "Left",
+      "description": "왼쪽 빗장밑동맥의 공식 참조 요소입니다. 척추동맥과 연결되는 하부 경부 메쉬가 원본에 없습니다.",
+      "color": "#d6a4a1",
+      "meshName": "left-subclavian",
+      "explode": [
+        -1.1,
+        -0.35,
+        0.1
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "atomicElements": [
+        {
+          "fileId": "FJ3479",
+          "conceptId": "FMA4694",
+          "representationId": "BP9324"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA4694/BP9324; atomic OBJ: FJ3479"
+    },
+    {
+      "id": "skull",
+      "name": "Skull (reference assembly)",
+      "group": "Reference layers",
+      "side": "Midline",
+      "description": "공식 BodyParts3D 두개골 요소를 합친 참조 모델입니다. CT 마스크가 아닙니다.",
+      "color": "#c3d8d0",
+      "meshName": "skull",
+      "explode": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 0.08,
+      "atomicElements": [
+        {
+          "fileId": "FJ1282",
+          "conceptId": "FMA58082",
+          "representationId": "BP7121"
+        },
+        {
+          "fileId": "FJ1285",
+          "conceptId": "FMA58300",
+          "representationId": "BP7112"
+        },
+        {
+          "fileId": "FJ1286",
+          "conceptId": "FMA58300",
+          "representationId": "BP7112"
+        },
+        {
+          "fileId": "FJ1289",
+          "conceptId": "FMA58240",
+          "representationId": "BP7115"
+        },
+        {
+          "fileId": "FJ1297",
+          "conceptId": "FMA58237",
+          "representationId": "BP7117"
+        },
+        {
+          "fileId": "FJ1299",
+          "conceptId": "FMA59103",
+          "representationId": "BP7109"
+        },
+        {
+          "fileId": "FJ1305",
+          "conceptId": "FMA58243",
+          "representationId": "BP7120"
+        },
+        {
+          "fileId": "FJ1317",
+          "conceptId": "FMA58272",
+          "representationId": "BP7114"
+        },
+        {
+          "fileId": "FJ1320",
+          "conceptId": "FMA58840",
+          "representationId": "BP7118"
+        },
+        {
+          "fileId": "FJ1331",
+          "conceptId": "FMA58829",
+          "representationId": "BP7119"
+        },
+        {
+          "fileId": "FJ1336",
+          "conceptId": "FMA58299",
+          "representationId": "BP7097"
+        },
+        {
+          "fileId": "FJ1337",
+          "conceptId": "FMA58299",
+          "representationId": "BP7097"
+        },
+        {
+          "fileId": "FJ1340",
+          "conceptId": "FMA58239",
+          "representationId": "BP7100"
+        },
+        {
+          "fileId": "FJ1348",
+          "conceptId": "FMA58236",
+          "representationId": "BP7096"
+        },
+        {
+          "fileId": "FJ1350",
+          "conceptId": "FMA59102",
+          "representationId": "BP7105"
+        },
+        {
+          "fileId": "FJ1356",
+          "conceptId": "FMA58242",
+          "representationId": "BP7104"
+        },
+        {
+          "fileId": "FJ1368",
+          "conceptId": "FMA58271",
+          "representationId": "BP7101"
+        },
+        {
+          "fileId": "FJ1371",
+          "conceptId": "FMA58839",
+          "representationId": "BP7102"
+        },
+        {
+          "fileId": "FJ1382",
+          "conceptId": "FMA58828",
+          "representationId": "BP7103"
+        },
+        {
+          "fileId": "FJ2772",
+          "conceptId": "FMA52749",
+          "representationId": "BP10003"
+        },
+        {
+          "fileId": "FJ3199",
+          "conceptId": "FMA52740",
+          "representationId": "BP10084"
+        },
+        {
+          "fileId": "FJ3200",
+          "conceptId": "FMA52734",
+          "representationId": "BP9668"
+        },
+        {
+          "fileId": "FJ3201",
+          "conceptId": "FMA52749",
+          "representationId": "BP10003"
+        },
+        {
+          "fileId": "FJ3263",
+          "conceptId": "FMA54738",
+          "representationId": "BP10109"
+        },
+        {
+          "fileId": "FJ3265",
+          "conceptId": "FMA53646",
+          "representationId": "BP9614"
+        },
+        {
+          "fileId": "FJ3269",
+          "conceptId": "FMA53650",
+          "representationId": "BP10118"
+        },
+        {
+          "fileId": "FJ3272",
+          "conceptId": "FMA53648",
+          "representationId": "BP9837"
+        },
+        {
+          "fileId": "FJ3273",
+          "conceptId": "FMA53656",
+          "representationId": "BP9484"
+        },
+        {
+          "fileId": "FJ3274",
+          "conceptId": "FMA52789",
+          "representationId": "BP10199"
+        },
+        {
+          "fileId": "FJ3281",
+          "conceptId": "FMA52739",
+          "representationId": "BP9536"
+        },
+        {
+          "fileId": "FJ3287",
+          "conceptId": "FMA52893",
+          "representationId": "BP9801"
+        },
+        {
+          "fileId": "FJ3289",
+          "conceptId": "FMA52748",
+          "representationId": "BP9617"
+        },
+        {
+          "fileId": "FJ3309",
+          "conceptId": "FMA52735",
+          "representationId": "BP10180"
+        },
+        {
+          "fileId": "FJ3369",
+          "conceptId": "FMA54737",
+          "representationId": "BP9752"
+        },
+        {
+          "fileId": "FJ3371",
+          "conceptId": "FMA53645",
+          "representationId": "BP9936"
+        },
+        {
+          "fileId": "FJ3375",
+          "conceptId": "FMA53649",
+          "representationId": "BP9705"
+        },
+        {
+          "fileId": "FJ3378",
+          "conceptId": "FMA53647",
+          "representationId": "BP10124"
+        },
+        {
+          "fileId": "FJ3379",
+          "conceptId": "FMA53655",
+          "representationId": "BP9748"
+        },
+        {
+          "fileId": "FJ3380",
+          "conceptId": "FMA52788",
+          "representationId": "BP10121"
+        },
+        {
+          "fileId": "FJ3386",
+          "conceptId": "FMA52738",
+          "representationId": "BP10032"
+        },
+        {
+          "fileId": "FJ3392",
+          "conceptId": "FMA52892",
+          "representationId": "BP9965"
+        },
+        {
+          "fileId": "FJ3394",
+          "conceptId": "FMA52736",
+          "representationId": "BP9806"
+        },
+        {
+          "fileId": "FJ3395",
+          "conceptId": "FMA9710",
+          "representationId": "BP9960"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA46565/BP9486; atomic OBJ: FJ1282, FJ1285, FJ1286, FJ1289, FJ1297, FJ1299, FJ1305, FJ1317, FJ1320, FJ1331, FJ1336, FJ1337, FJ1340, FJ1348, FJ1350, FJ1356, FJ1368, FJ1371, FJ1382, FJ2772, FJ3199, FJ3200, FJ3201, FJ3263, FJ3265, FJ3269, FJ3272, FJ3273, FJ3274, FJ3281, FJ3287, FJ3289, FJ3309, FJ3369, FJ3371, FJ3375, FJ3378, FJ3379, FJ3380, FJ3386, FJ3392, FJ3394, FJ3395"
+    },
+    {
+      "id": "brain",
+      "name": "Brain (reference assembly)",
+      "group": "Reference layers",
+      "side": "Midline",
+      "description": "공식 BodyParts3D 뇌 요소를 합친 참조 모델입니다. MRI 분할 마스크가 아닙니다.",
+      "color": "#a5afcc",
+      "meshName": "brain",
+      "explode": [
+        0.0,
+        0.35,
+        0.25
+      ],
+      "defaultVisible": true,
+      "defaultOpacity": 0.16,
+      "atomicElements": [
+        {
+          "fileId": "FJ1730",
+          "conceptId": "FMA78454",
+          "representationId": "BP6685"
+        },
+        {
+          "fileId": "FJ1731",
+          "conceptId": "FMA78469",
+          "representationId": "BP6686"
+        },
+        {
+          "fileId": "FJ1732",
+          "conceptId": "FMA72670",
+          "representationId": "BP10539"
+        },
+        {
+          "fileId": "FJ1733",
+          "conceptId": "FMA72669",
+          "representationId": "BP10541"
+        },
+        {
+          "fileId": "FJ1738",
+          "conceptId": "FMA78467",
+          "representationId": "BP6684"
+        },
+        {
+          "fileId": "FJ1739",
+          "conceptId": "FMA72718",
+          "representationId": "BP10546"
+        },
+        {
+          "fileId": "FJ1740",
+          "conceptId": "FMA72717",
+          "representationId": "BP10555"
+        },
+        {
+          "fileId": "FJ1743",
+          "conceptId": "FMA62032",
+          "representationId": "BP6699"
+        },
+        {
+          "fileId": "FJ1744",
+          "conceptId": "FMA72658",
+          "representationId": "BP10548"
+        },
+        {
+          "fileId": "FJ1745",
+          "conceptId": "FMA72657",
+          "representationId": "BP10510"
+        },
+        {
+          "fileId": "FJ1746",
+          "conceptId": "FMA72688",
+          "representationId": "BP10504"
+        },
+        {
+          "fileId": "FJ1747",
+          "conceptId": "FMA72687",
+          "representationId": "BP10553"
+        },
+        {
+          "fileId": "FJ1748",
+          "conceptId": "FMA72978",
+          "representationId": "BP10554"
+        },
+        {
+          "fileId": "FJ1749",
+          "conceptId": "FMA72977",
+          "representationId": "BP10549"
+        },
+        {
+          "fileId": "FJ1750",
+          "conceptId": "FMA72907",
+          "representationId": "BP10532"
+        },
+        {
+          "fileId": "FJ1751",
+          "conceptId": "FMA72906",
+          "representationId": "BP10516"
+        },
+        {
+          "fileId": "FJ1758",
+          "conceptId": "FMA260794",
+          "representationId": "BP10489"
+        },
+        {
+          "fileId": "FJ1759",
+          "conceptId": "FMA72714",
+          "representationId": "BP10528"
+        },
+        {
+          "fileId": "FJ1760",
+          "conceptId": "FMA62008",
+          "representationId": "BP6690"
+        },
+        {
+          "fileId": "FJ1762",
+          "conceptId": "FMA73435",
+          "representationId": "BP10551"
+        },
+        {
+          "fileId": "FJ1767",
+          "conceptId": "FMA78450",
+          "representationId": "BP10543"
+        },
+        {
+          "fileId": "FJ1769",
+          "conceptId": "FMA62004",
+          "representationId": "BP6704"
+        },
+        {
+          "fileId": "FJ1770",
+          "conceptId": "FMA61993",
+          "representationId": "BP6705"
+        },
+        {
+          "fileId": "FJ1775",
+          "conceptId": "FMA67943",
+          "representationId": "BP6703"
+        },
+        {
+          "fileId": "FJ1779",
+          "conceptId": "FMA73423",
+          "representationId": "BP10493"
+        },
+        {
+          "fileId": "FJ1780",
+          "conceptId": "FMA62327",
+          "representationId": "BP6692"
+        },
+        {
+          "fileId": "FJ1781",
+          "conceptId": "FMA67944",
+          "representationId": "BP6702"
+        },
+        {
+          "fileId": "FJ1783",
+          "conceptId": "FMA72690",
+          "representationId": "BP10521"
+        },
+        {
+          "fileId": "FJ1784",
+          "conceptId": "FMA72689",
+          "representationId": "BP10522"
+        },
+        {
+          "fileId": "FJ1785",
+          "conceptId": "FMA72706",
+          "representationId": "BP10508"
+        },
+        {
+          "fileId": "FJ1786",
+          "conceptId": "FMA72705",
+          "representationId": "BP10518"
+        },
+        {
+          "fileId": "FJ1787",
+          "conceptId": "FMA72656",
+          "representationId": "BP10540"
+        },
+        {
+          "fileId": "FJ1788",
+          "conceptId": "FMA72655",
+          "representationId": "BP10538"
+        },
+        {
+          "fileId": "FJ1789",
+          "conceptId": "FMA72686",
+          "representationId": "BP10517"
+        },
+        {
+          "fileId": "FJ1790",
+          "conceptId": "FMA72685",
+          "representationId": "BP10520"
+        },
+        {
+          "fileId": "FJ1791",
+          "conceptId": "FMA72976",
+          "representationId": "BP10550"
+        },
+        {
+          "fileId": "FJ1792",
+          "conceptId": "FMA72975",
+          "representationId": "BP10509"
+        },
+        {
+          "fileId": "FJ1795",
+          "conceptId": "FMA62033",
+          "representationId": "BP6698"
+        },
+        {
+          "fileId": "FJ1797",
+          "conceptId": "FMA72666",
+          "representationId": "BP10547"
+        },
+        {
+          "fileId": "FJ1798",
+          "conceptId": "FMA72665",
+          "representationId": "BP10552"
+        },
+        {
+          "fileId": "FJ1800",
+          "conceptId": "FMA72662",
+          "representationId": "BP10542"
+        },
+        {
+          "fileId": "FJ1801",
+          "conceptId": "FMA72661",
+          "representationId": "BP10535"
+        },
+        {
+          "fileId": "FJ1806",
+          "conceptId": "FMA260791",
+          "representationId": "BP10496"
+        },
+        {
+          "fileId": "FJ1807",
+          "conceptId": "FMA72713",
+          "representationId": "BP10499"
+        },
+        {
+          "fileId": "FJ1808",
+          "conceptId": "FMA62008",
+          "representationId": "BP6690"
+        },
+        {
+          "fileId": "FJ1810",
+          "conceptId": "FMA73434",
+          "representationId": "BP10495"
+        },
+        {
+          "fileId": "FJ1814",
+          "conceptId": "FMA78449",
+          "representationId": "BP10503"
+        },
+        {
+          "fileId": "FJ1817",
+          "conceptId": "FMA61993",
+          "representationId": "BP6705"
+        },
+        {
+          "fileId": "FJ1822",
+          "conceptId": "FMA67943",
+          "representationId": "BP6703"
+        },
+        {
+          "fileId": "FJ1826",
+          "conceptId": "FMA73422",
+          "representationId": "BP10545"
+        },
+        {
+          "fileId": "FJ1828",
+          "conceptId": "FMA62327",
+          "representationId": "BP6692"
+        },
+        {
+          "fileId": "FJ1830",
+          "conceptId": "FMA67944",
+          "representationId": "BP6702"
+        },
+        {
+          "fileId": "FJ1831",
+          "conceptId": "FMA62004",
+          "representationId": "BP6704"
+        },
+        {
+          "fileId": "FJ1833",
+          "conceptId": "FMA72654",
+          "representationId": "BP10523"
+        },
+        {
+          "fileId": "FJ1834",
+          "conceptId": "FMA72653",
+          "representationId": "BP10533"
+        },
+        {
+          "fileId": "FJ1835",
+          "conceptId": "FMA72672",
+          "representationId": "BP10534"
+        },
+        {
+          "fileId": "FJ1836",
+          "conceptId": "FMA72671",
+          "representationId": "BP10536"
+        },
+        {
+          "fileId": "FJ1841",
+          "conceptId": "FMA72668",
+          "representationId": "BP10506"
+        },
+        {
+          "fileId": "FJ1842",
+          "conceptId": "FMA72667",
+          "representationId": "BP10544"
+        }
+      ],
+      "source": "BodyParts3D 4.0 PART-OF FMA50801/BP6687; atomic OBJ: FJ1730, FJ1731, FJ1732, FJ1733, FJ1738, FJ1739, FJ1740, FJ1743, FJ1744, FJ1745, FJ1746, FJ1747, FJ1748, FJ1749, FJ1750, FJ1751, FJ1758, FJ1759, FJ1760, FJ1762, FJ1767, FJ1769, FJ1770, FJ1775, FJ1779, FJ1780, FJ1781, FJ1783, FJ1784, FJ1785, FJ1786, FJ1787, FJ1788, FJ1789, FJ1790, FJ1791, FJ1792, FJ1795, FJ1797, FJ1798, FJ1800, FJ1801, FJ1806, FJ1807, FJ1808, FJ1810, FJ1814, FJ1817, FJ1822, FJ1826, FJ1828, FJ1830, FJ1831, FJ1833, FJ1834, FJ1835, FJ1836, FJ1841, FJ1842"
+    }
+  ],
+  "connectionGuides": [
+    {
+      "id": "right-carotid-gap",
+      "from": "right-cca",
+      "to": "right-ica",
+      "fromPoint": [
+        0.019759299233555794,
+        1.3732000589370728,
+        -0.11009500175714493
+      ],
+      "toPoint": [
+        0.03510959818959236,
+        1.434559941291809,
+        -0.10589999705553055
+      ],
+      "gapMm": 63.39,
+      "kind": "schematic",
+      "description": "Official PART-OF omits the right cervical carotid transition. This dashed line is a schematic orientation guide only."
+    },
+    {
+      "id": "left-carotid-gap",
+      "from": "left-cca",
+      "to": "left-ica",
+      "fromPoint": [
+        -0.02127940021455288,
+        1.3735899925231934,
+        -0.10715500265359879
+      ],
+      "toPoint": [
+        -0.035116299986839294,
+        1.434540033340454,
+        -0.10527700185775757
+      ],
+      "gapMm": 62.53,
+      "kind": "schematic",
+      "description": "Official PART-OF omits the left cervical carotid transition. This dashed line is a schematic orientation guide only."
+    },
+    {
+      "id": "right-vertebral-gap",
+      "from": "right-subclavian",
+      "to": "right-va",
+      "fromPoint": [
+        0.027549700811505318,
+        1.3514399528503418,
+        -0.09728039801120758
+      ],
+      "toPoint": [
+        0.016051599755883217,
+        1.398650050163269,
+        -0.08200959861278534
+      ],
+      "gapMm": 50.93,
+      "kind": "schematic",
+      "description": "Official PART-OF omits the right lower cervical vertebral artery. This dashed line is a schematic orientation guide only."
+    },
+    {
+      "id": "left-vertebral-gap",
+      "from": "left-subclavian",
+      "to": "left-va",
+      "fromPoint": [
+        -0.03424210101366043,
+        1.3547999858856201,
+        -0.09823759645223618
+      ],
+      "toPoint": [
+        -0.016051599755883217,
+        1.398650050163269,
+        -0.0820097029209137
+      ],
+      "gapMm": 50.17,
+      "kind": "schematic",
+      "description": "Official PART-OF omits the left lower cervical vertebral artery. This dashed line is a schematic orientation guide only."
+    }
+  ]
+}

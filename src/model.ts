@@ -1,6 +1,7 @@
 export type Vec3 = [number, number, number];
 export interface Structure { id: string; name: string; label?: number; group: string; side: string; description: string; color: string; meshName: string; path?: Vec3[]; radius?: number; explode: Vec3; source?: string; defaultVisible?: boolean; defaultOpacity?: number }
-export interface Manifest { schemaVersion: 1 | 2; title: string; source: string; license: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; provenance: string; structures: Structure[]; metadata?: Record<string, unknown> }
+export interface ConnectionGuide { id: string; from: string; to: string; fromPoint: Vec3; toPoint: Vec3; gapMm: number; kind: 'schematic'; description: string }
+export interface Manifest { schemaVersion: 1 | 2; title: string; source: string; license: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; provenance: string; structures: Structure[]; connectionGuides?: ConnectionGuide[]; metadata?: Record<string, unknown> }
 // The CT context layer: one Gaussian per selected CT voxel in the GLB's own frame.
 export interface ContextLayer { kind: 'gaussian-splat-context'; contextVersion: 1; source: string; license: string; provenance: string; coordinateSystem: 'glTF-Y-up'; units: 'm'; splats: number; subject?: string; ctSha256?: string; voxelToGltfM?: number[][] }
 const segment = (id: string, name: string, group: string, side: string, description: string, color: string, path: Vec3[], radius: number, explode: Vec3): Structure => ({ id, name, group, side, description, color, path: path.map(([x,y,z]) => [-x,y,-z]), radius, explode: [-explode[0],explode[1],-explode[2]], meshName: id });
@@ -44,6 +45,20 @@ export function validateManifest(value: unknown): Manifest {
     if (s.defaultVisible !== undefined && typeof s.defaultVisible !== 'boolean') throw new Error('Invalid defaultVisible.');
     if (s.defaultOpacity !== undefined && (typeof s.defaultOpacity !== 'number' || !Number.isFinite(s.defaultOpacity) || s.defaultOpacity < 0 || s.defaultOpacity > 1)) throw new Error('Invalid defaultOpacity: expected 0–1.');
     ids.add(s.id as string); names.add(s.meshName as string);
+  }
+  if (value.connectionGuides !== undefined) {
+    if (value.schemaVersion !== 2 || !Array.isArray(value.connectionGuides) || value.connectionGuides.length > 8) throw new Error('Invalid schematic connection guides.');
+    const guideIds = new Set<string>();
+    for (const guide of value.connectionGuides) {
+      if (!object(guide) || !text(guide.id, 100) || !/^[a-zA-Z0-9_.-]+$/.test(guide.id) || guideIds.has(guide.id)) throw new Error('Invalid or duplicate connection guide ID.');
+      if (!text(guide.from) || !text(guide.to) || guide.from === guide.to || !ids.has(guide.from) || !ids.has(guide.to)) throw new Error('Connection guide endpoints must name distinct structures.');
+      if (!vector(guide.fromPoint) || !vector(guide.toPoint) || typeof guide.gapMm !== 'number' || !Number.isFinite(guide.gapMm) || guide.gapMm <= 0 || guide.gapMm > 500) throw new Error('Invalid connection guide coordinates or gap.');
+      if (guide.kind !== 'schematic' || !text(guide.description)) throw new Error('Connection guides must be described as schematic.');
+      const fromPoint = guide.fromPoint as Vec3, toPoint = guide.toPoint as Vec3;
+      const measuredMm = Math.hypot(...fromPoint.map((coordinate, axis) => coordinate - toPoint[axis])) * 1000;
+      if (Math.abs(measuredMm - guide.gapMm) > .15) throw new Error('Connection guide gap does not match its endpoints.');
+      guideIds.add(guide.id);
+    }
   }
   return value as unknown as Manifest;
 }
