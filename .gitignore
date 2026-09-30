@@ -26,11 +26,14 @@ acceptance-screenshots/
 *.[gG][lL][bB]
 # Explicitly approved public BodyParts3D reference model; keep all other GLBs ignored.
 !public/reference/bodyparts3d.glb
+# Explicitly approved public TopBrain 2025 demo case (attribution, non-commercial); see public/cases/topbrain-ct-001/ATTRIBUTION.txt.
+!public/cases/topbrain-ct-001/case.glb
 *.[gG][lL][tT][fF]
 *.[bB][iI][nN]
 *.[sS][tT][lL]
 *.[oO][bB][jJ]
 *.[pP][lL][yY]
+!public/cases/topbrain-ct-001/case.context.ply
 *.[vV][tT][kK]
 *.[vV][tT][pP]
 *.[vV][tT][iI]

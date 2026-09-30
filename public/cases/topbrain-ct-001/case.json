@@ -1,0 +1,3853 @@
+{
+  "schemaVersion": 2,
+  "title": "Splatomy · CTA anatomy, subject topcow_ct_001",
+  "source": "TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations; https://doi.org/10.5281/zenodo.21972006",
+  "license": "Open use, attribution required (opendata.swiss terms): non-commercial use is free, commercial use requires permission of the data owner, University Hospital Zurich; https://opendata.swiss/en/terms-of-use",
+  "coordinateSystem": "glTF-Y-up",
+  "units": "m",
+  "provenance": "Expert voxel annotations of one subject from the public TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations, converted at the native voxel grid without registration or resampling. Coverage is the subject's scan field of view; an empty mask is not evidence of absent anatomy. Research and education use only, not for clinical decision.",
+  "structures": [
+    {
+      "id": "ba",
+      "meshName": "ba",
+      "name": "Basilar artery",
+      "group": "Posterior circulation",
+      "side": "Not side-specific",
+      "color": "#e08a5b",
+      "explode": [
+        0.0,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "ba",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Basilar artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 2975,
+        "voxelBoundingBoxExclusive": [
+          [
+            130,
+            119,
+            62
+          ],
+          [
+            154,
+            140,
+            109
+          ]
+        ],
+        "vertexCount": 2456,
+        "triangleCount": 4908,
+        "boundsGltfM": [
+          [
+            -0.03224624705314636,
+            -0.15896051025390623,
+            -0.009822979688644408
+          ],
+          [
+            -0.020058735609054558,
+            -0.12958551025390624,
+            0.0008410928249359129
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            129.5,
+            123.0,
+            87.0
+          ],
+          "gltfM": [
+            -0.020058735609054558,
+            -0.14302301025390624,
+            -0.007537821292877195
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_p1p2",
+      "meshName": "r_p1p2",
+      "name": "Right posterior cerebral artery, P1–P2",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "color": "#e08a5b",
+      "explode": [
+        0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_p1p2",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right posterior cerebral artery, P1–P2 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 1705,
+        "voxelBoundingBoxExclusive": [
+          [
+            90,
+            136,
+            91
+          ],
+          [
+            137,
+            193,
+            110
+          ]
+        ],
+        "vertexCount": 2284,
+        "triangleCount": 4564,
+        "boundsGltfM": [
+          [
+            -0.023613426446914672,
+            -0.14083551025390623,
+            -0.0011901590824127256
+          ],
+          [
+            0.00025378346443176436,
+            -0.12896051025390626,
+            0.027755180597305293
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            89.5,
+            156.0,
+            95.0
+          ],
+          "gltfM": [
+            0.00025378346443176436,
+            -0.13802301025390623,
+            0.00922000694274902
+          ]
+        }
+      }
+    },
+    {
+      "id": "l_p1p2",
+      "meshName": "l_p1p2",
+      "name": "Left posterior cerebral artery, P1–P2",
+      "group": "Posterior circulation",
+      "side": "Left",
+      "color": "#e08a5b",
+      "explode": [
+        -0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "l_p1p2",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Left posterior cerebral artery, P1–P2 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 1940,
+        "voxelBoundingBoxExclusive": [
+          [
+            140,
+            122,
+            91
+          ],
+          [
+            186,
+            183,
+            112
+          ]
+        ],
+        "vertexCount": 2589,
+        "triangleCount": 5178,
+        "boundsGltfM": [
+          [
+            -0.04849626231193543,
+            -0.14083551025390623,
+            -0.008299540758132933
+          ],
+          [
+            -0.025136865377426147,
+            -0.12771051025390623,
+            0.022677050828933717
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            139.5,
+            131.0,
+            108.0
+          ],
+          "gltfM": [
+            -0.025136865377426147,
+            -0.12989801025390624,
+            -0.0034753174781799318
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_ica_c6_c7",
+      "meshName": "r_ica_c6_c7",
+      "name": "Right internal carotid artery, C6–C7 (supraclinoid)",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "color": "#d9534f",
+      "explode": [
+        0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_ica_c6_c7",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right internal carotid artery, C6–C7 (supraclinoid) from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 2607,
+        "voxelBoundingBoxExclusive": [
+          [
+            91,
+            85,
+            96
+          ],
+          [
+            121,
+            121,
+            112
+          ]
+        ],
+        "vertexCount": 2082,
+        "triangleCount": 4160,
+        "boundsGltfM": [
+          [
+            -0.015488418817520139,
+            -0.13771051025390624,
+            -0.027088620901107786
+          ],
+          [
+            -0.0002540295124053918,
+            -0.12771051025390623,
+            -0.008807353734970096
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            90.5,
+            114.0,
+            109.0
+          ],
+          "gltfM": [
+            -0.0002540295124053918,
+            -0.12927301025390625,
+            -0.012108138084411621
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_m1",
+      "meshName": "r_m1",
+      "name": "Right middle cerebral artery, M1",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "color": "#d9534f",
+      "explode": [
+        0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_m1",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right middle cerebral artery, M1 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 1075,
+        "voxelBoundingBoxExclusive": [
+          [
+            64,
+            93,
+            101
+          ],
+          [
+            97,
+            117,
+            110
+          ]
+        ],
+        "vertexCount": 1140,
+        "triangleCount": 2276,
+        "boundsGltfM": [
+          [
+            -0.0033009073734283426,
+            -0.13458551025390625,
+            -0.023026117086410523
+          ],
+          [
+            0.01345692086219788,
+            -0.12896051025390626,
+            -0.010838605642318727
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            63.5,
+            93.0,
+            104.0
+          ],
+          "gltfM": [
+            0.01345692086219788,
+            -0.13239801025390624,
+            -0.022772210597991942
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_pcom",
+      "meshName": "r_pcom",
+      "name": "Right posterior communicating artery",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "color": "#e08a5b",
+      "explode": [
+        0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_pcom",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right posterior communicating artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 218,
+        "voxelBoundingBoxExclusive": [
+          [
+            115,
+            112,
+            101
+          ],
+          [
+            129,
+            139,
+            111
+          ]
+        ],
+        "vertexCount": 460,
+        "triangleCount": 916,
+        "boundsGltfM": [
+          [
+            -0.01955092263221741,
+            -0.13458551025390625,
+            -0.013377670526504515
+          ],
+          [
+            -0.012441540956497188,
+            -0.12833551025390624,
+            0.0003332798480987498
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            114.5,
+            113.0,
+            101.0
+          ],
+          "gltfM": [
+            -0.012441540956497188,
+            -0.13427301025390626,
+            -0.012615951061248777
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_a1a2",
+      "meshName": "r_a1a2",
+      "name": "Right anterior cerebral artery, A1–A2",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "color": "#d9534f",
+      "explode": [
+        0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_a1a2",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right anterior cerebral artery, A1–A2 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 1704,
+        "voxelBoundingBoxExclusive": [
+          [
+            98,
+            81,
+            108
+          ],
+          [
+            135,
+            121,
+            143
+          ]
+        ],
+        "vertexCount": 2160,
+        "triangleCount": 4316,
+        "boundsGltfM": [
+          [
+            -0.02259780049324036,
+            -0.13021051025390623,
+            -0.029119872808456425
+          ],
+          [
+            -0.0038087203502654987,
+            -0.10833551025390624,
+            -0.008807353734970096
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            97.5,
+            116.0,
+            112.0
+          ],
+          "gltfM": [
+            -0.0038087203502654987,
+            -0.12739801025390624,
+            -0.011092512130737309
+          ]
+        }
+      }
+    },
+    {
+      "id": "l_a1a2",
+      "meshName": "l_a1a2",
+      "name": "Left anterior cerebral artery, A1–A2",
+      "group": "Anterior circulation",
+      "side": "Left",
+      "color": "#d9534f",
+      "explode": [
+        -0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "l_a1a2",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Left anterior cerebral artery, A1–A2 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 1561,
+        "voxelBoundingBoxExclusive": [
+          [
+            120,
+            78,
+            106
+          ],
+          [
+            157,
+            116,
+            143
+          ]
+        ],
+        "vertexCount": 1982,
+        "triangleCount": 3960,
+        "boundsGltfM": [
+          [
+            -0.033769685983657836,
+            -0.13146051025390626,
+            -0.030643311738967893
+          ],
+          [
+            -0.014980605840682983,
+            -0.10833551025390624,
+            -0.011346418619155883
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            119.5,
+            94.0,
+            115.0
+          ],
+          "gltfM": [
+            -0.014980605840682983,
+            -0.12552301025390622,
+            -0.022264397621154786
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_a3",
+      "meshName": "r_a3",
+      "name": "Right anterior cerebral artery, A3",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "color": "#d9534f",
+      "explode": [
+        0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_a3",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right anterior cerebral artery, A3 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 769,
+        "voxelBoundingBoxExclusive": [
+          [
+            116,
+            61,
+            139
+          ],
+          [
+            129,
+            87,
+            170
+          ]
+        ],
+        "vertexCount": 1160,
+        "triangleCount": 2316,
+        "boundsGltfM": [
+          [
+            -0.01955092263221741,
+            -0.11083551025390624,
+            -0.03927613234519958
+          ],
+          [
+            -0.012949353933334351,
+            -0.09146051025390624,
+            -0.026072994947433474
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            115.5,
+            77.0,
+            163.0
+          ],
+          "gltfM": [
+            -0.012949353933334351,
+            -0.09552301025390623,
+            -0.030897218227386475
+          ]
+        }
+      }
+    },
+    {
+      "id": "l_a3",
+      "meshName": "l_a3",
+      "name": "Left anterior cerebral artery, A3",
+      "group": "Anterior circulation",
+      "side": "Left",
+      "color": "#d9534f",
+      "explode": [
+        -0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "l_a3",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Left anterior cerebral artery, A3 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 799,
+        "voxelBoundingBoxExclusive": [
+          [
+            118,
+            67,
+            139
+          ],
+          [
+            134,
+            85,
+            175
+          ]
+        ],
+        "vertexCount": 1136,
+        "triangleCount": 2268,
+        "boundsGltfM": [
+          [
+            -0.022089987516403196,
+            -0.11083551025390624,
+            -0.03622925448417664
+          ],
+          [
+            -0.013964979887008663,
+            -0.08833551025390624,
+            -0.027088620901107786
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            117.5,
+            76.0,
+            170.0
+          ],
+          "gltfM": [
+            -0.013964979887008663,
+            -0.09114801025390624,
+            -0.03140503120422363
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_m2",
+      "meshName": "r_m2",
+      "name": "Right middle cerebral artery, M2",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "color": "#d9534f",
+      "explode": [
+        0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_m2",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right middle cerebral artery, M2 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 7515,
+        "voxelBoundingBoxExclusive": [
+          [
+            31,
+            84,
+            100
+          ],
+          [
+            76,
+            209,
+            165
+          ]
+        ],
+        "vertexCount": 11226,
+        "triangleCount": 22512,
+        "boundsGltfM": [
+          [
+            0.007363165140151978,
+            -0.13521051025390624,
+            -0.02759643387794495
+          ],
+          [
+            0.0302147490978241,
+            -0.09458551025390624,
+            0.03588018822669983
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            30.5,
+            129.0,
+            112.0
+          ],
+          "gltfM": [
+            0.0302147490978241,
+            -0.12739801025390624,
+            -0.004490943431854244
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_m3",
+      "meshName": "r_m3",
+      "name": "Right middle cerebral artery, M3",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "color": "#d9534f",
+      "explode": [
+        0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_m3",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right middle cerebral artery, M3 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 3058,
+        "voxelBoundingBoxExclusive": [
+          [
+            10,
+            83,
+            118
+          ],
+          [
+            73,
+            225,
+            166
+          ]
+        ],
+        "vertexCount": 5806,
+        "triangleCount": 11576,
+        "boundsGltfM": [
+          [
+            0.008886604070663454,
+            -0.12396051025390624,
+            -0.028104246854782106
+          ],
+          [
+            0.04087882161140442,
+            -0.09396051025390624,
+            0.04400519585609436
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            9.5,
+            178.0,
+            134.0
+          ],
+          "gltfM": [
+            0.04087882161140442,
+            -0.11364801025390624,
+            0.020391892433166497
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_p3p4",
+      "meshName": "r_p3p4",
+      "name": "Right posterior cerebral artery, P3–P4",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "color": "#e08a5b",
+      "explode": [
+        0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_p3p4",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right posterior cerebral artery, P3–P4 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 985,
+        "voxelBoundingBoxExclusive": [
+          [
+            101,
+            189,
+            97
+          ],
+          [
+            129,
+            239,
+            113
+          ]
+        ],
+        "vertexCount": 1618,
+        "triangleCount": 3244,
+        "boundsGltfM": [
+          [
+            -0.01955092263221741,
+            -0.13708551025390625,
+            0.025723928689956668
+          ],
+          [
+            -0.005332159280776974,
+            -0.12708551025390624,
+            0.05111457753181457
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            100.5,
+            237.0,
+            99.0
+          ],
+          "gltfM": [
+            -0.005332159280776974,
+            -0.13552301025390623,
+            0.05035285806655884
+          ]
+        }
+      }
+    },
+    {
+      "id": "l_p3p4",
+      "meshName": "l_p3p4",
+      "name": "Left posterior cerebral artery, P3–P4",
+      "group": "Posterior circulation",
+      "side": "Left",
+      "color": "#e08a5b",
+      "explode": [
+        -0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "l_p3p4",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Left posterior cerebral artery, P3–P4 from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 1112,
+        "voxelBoundingBoxExclusive": [
+          [
+            160,
+            182,
+            95
+          ],
+          [
+            191,
+            239,
+            111
+          ]
+        ],
+        "vertexCount": 1765,
+        "triangleCount": 3538,
+        "boundsGltfM": [
+          [
+            -0.051035327196121215,
+            -0.13833551025390622,
+            0.022169237852096554
+          ],
+          [
+            -0.03529312491416931,
+            -0.12833551025390624,
+            0.05111457753181457
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            159.5,
+            226.0,
+            96.0
+          ],
+          "gltfM": [
+            -0.03529312491416931,
+            -0.13739801025390624,
+            0.044766915321350104
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_va",
+      "meshName": "r_va",
+      "name": "Right vertebral artery",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "color": "#e08a5b",
+      "explode": [
+        0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_va",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right vertebral artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 8016,
+        "voxelBoundingBoxExclusive": [
+          [
+            75,
+            131,
+            0
+          ],
+          [
+            152,
+            182,
+            64
+          ]
+        ],
+        "vertexCount": 6618,
+        "triangleCount": 13232,
+        "boundsGltfM": [
+          [
+            -0.03123062109947205,
+            -0.19771051025390624,
+            -0.0037292239665985133
+          ],
+          [
+            0.007870978116989134,
+            -0.15771051025390626,
+            0.022169237852096554
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            74.5,
+            163.0,
+            15.0
+          ],
+          "gltfM": [
+            0.007870978116989134,
+            -0.18802301025390625,
+            0.012774697780609134
+          ]
+        }
+      }
+    },
+    {
+      "id": "l_va",
+      "meshName": "l_va",
+      "name": "Left vertebral artery",
+      "group": "Posterior circulation",
+      "side": "Left",
+      "color": "#e08a5b",
+      "explode": [
+        -0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "l_va",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Left vertebral artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 6705,
+        "voxelBoundingBoxExclusive": [
+          [
+            141,
+            127,
+            0
+          ],
+          [
+            197,
+            174,
+            69
+          ]
+        ],
+        "vertexCount": 6013,
+        "triangleCount": 12018,
+        "boundsGltfM": [
+          [
+            -0.054082205057144166,
+            -0.19771051025390624,
+            -0.005760475873947138
+          ],
+          [
+            -0.02564467835426331,
+            -0.15458551025390624,
+            0.01810673403739929
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            140.5,
+            152.0,
+            38.0
+          ],
+          "gltfM": [
+            -0.02564467835426331,
+            -0.17364801025390625,
+            0.007188755035400396
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_sca",
+      "meshName": "r_sca",
+      "name": "Right superior cerebellar artery",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "color": "#e08a5b",
+      "explode": [
+        0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_sca",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right superior cerebellar artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 64,
+        "voxelBoundingBoxExclusive": [
+          [
+            120,
+            133,
+            100
+          ],
+          [
+            134,
+            139,
+            103
+          ]
+        ],
+        "vertexCount": 162,
+        "triangleCount": 320,
+        "boundsGltfM": [
+          [
+            -0.022089987516403196,
+            -0.13521051025390624,
+            -0.002713598012924201
+          ],
+          [
+            -0.014980605840682983,
+            -0.13333551025390625,
+            0.0003332798480987498
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            119.5,
+            138.0,
+            100.0
+          ],
+          "gltfM": [
+            -0.014980605840682983,
+            -0.13489801025390624,
+            7.937335968016823e-05
+          ]
+        }
+      }
+    },
+    {
+      "id": "l_sca",
+      "meshName": "l_sca",
+      "name": "Left superior cerebellar artery",
+      "group": "Posterior circulation",
+      "side": "Left",
+      "color": "#e08a5b",
+      "explode": [
+        -0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "l_sca",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Left superior cerebellar artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 209,
+        "voxelBoundingBoxExclusive": [
+          [
+            140,
+            123,
+            77
+          ],
+          [
+            160,
+            134,
+            104
+          ]
+        ],
+        "vertexCount": 510,
+        "triangleCount": 1016,
+        "boundsGltfM": [
+          [
+            -0.03529312491416931,
+            -0.14958551025390623,
+            -0.007791727781295776
+          ],
+          [
+            -0.025136865377426147,
+            -0.13271051025390623,
+            -0.002205785036087038
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            139.5,
+            129.0,
+            101.0
+          ],
+          "gltfM": [
+            -0.025136865377426147,
+            -0.13427301025390626,
+            -0.004490943431854244
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_aica",
+      "meshName": "r_aica",
+      "name": "Right anterior inferior cerebellar artery",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "color": "#e08a5b",
+      "explode": [
+        0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_aica",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right anterior inferior cerebellar artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 55,
+        "voxelBoundingBoxExclusive": [
+          [
+            133,
+            124,
+            65
+          ],
+          [
+            139,
+            132,
+            73
+          ]
+        ],
+        "vertexCount": 136,
+        "triangleCount": 268,
+        "boundsGltfM": [
+          [
+            -0.024629052400588984,
+            -0.15708551025390624,
+            -0.007283914804458613
+          ],
+          [
+            -0.021582174539566033,
+            -0.15208551025390624,
+            -0.00322141098976135
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            132.5,
+            130.0,
+            65.0
+          ],
+          "gltfM": [
+            -0.021582174539566033,
+            -0.15677301025390625,
+            -0.003983130455017095
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_pica",
+      "meshName": "r_pica",
+      "name": "Right posterior inferior cerebellar artery",
+      "group": "Posterior circulation",
+      "side": "Right",
+      "color": "#e08a5b",
+      "explode": [
+        0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_pica",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right posterior inferior cerebellar artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 818,
+        "voxelBoundingBoxExclusive": [
+          [
+            105,
+            150,
+            13
+          ],
+          [
+            132,
+            182,
+            59
+          ]
+        ],
+        "vertexCount": 1412,
+        "triangleCount": 2820,
+        "boundsGltfM": [
+          [
+            -0.021074361562728884,
+            -0.18958551025390624,
+            0.005919222593307488
+          ],
+          [
+            -0.007363411188125613,
+            -0.16083551025390624,
+            0.022169237852096554
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            104.5,
+            157.0,
+            54.0
+          ],
+          "gltfM": [
+            -0.007363411188125613,
+            -0.16364801025390624,
+            0.009727819919586184
+          ]
+        }
+      }
+    },
+    {
+      "id": "l_pica",
+      "meshName": "l_pica",
+      "name": "Left posterior inferior cerebellar artery",
+      "group": "Posterior circulation",
+      "side": "Left",
+      "color": "#e08a5b",
+      "explode": [
+        -0.04,
+        0.0,
+        0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "l_pica",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Left posterior inferior cerebellar artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 940,
+        "voxelBoundingBoxExclusive": [
+          [
+            140,
+            157,
+            9
+          ],
+          [
+            159,
+            185,
+            36
+          ]
+        ],
+        "vertexCount": 1686,
+        "triangleCount": 3380,
+        "boundsGltfM": [
+          [
+            -0.03478531193733215,
+            -0.19208551025390624,
+            0.009473913431167602
+          ],
+          [
+            -0.025136865377426147,
+            -0.17521051025390624,
+            0.02369267678260803
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            139.5,
+            182.0,
+            21.0
+          ],
+          "gltfM": [
+            -0.025136865377426147,
+            -0.18427301025390624,
+            0.022423144340515136
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_oa",
+      "meshName": "r_oa",
+      "name": "Right ophthalmic artery",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "color": "#d9534f",
+      "explode": [
+        0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_oa",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right ophthalmic artery from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 284,
+        "voxelBoundingBoxExclusive": [
+          [
+            70,
+            49,
+            101
+          ],
+          [
+            101,
+            78,
+            120
+          ]
+        ],
+        "vertexCount": 705,
+        "triangleCount": 1426,
+        "boundsGltfM": [
+          [
+            -0.005332159280776974,
+            -0.13458551025390625,
+            -0.045369888067245484
+          ],
+          [
+            0.010410043001174929,
+            -0.12271051025390624,
+            -0.030643311738967893
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            69.5,
+            56.0,
+            109.0
+          ],
+          "gltfM": [
+            0.010410043001174929,
+            -0.12927301025390625,
+            -0.0415612907409668
+          ]
+        }
+      }
+    },
+    {
+      "id": "r_ica_c1_c5",
+      "meshName": "r_ica_c1_c5",
+      "name": "Right internal carotid artery, C1–C5 (infraclinoid)",
+      "group": "Anterior circulation",
+      "side": "Right",
+      "color": "#d9534f",
+      "explode": [
+        0.04,
+        0.0,
+        -0.02
+      ],
+      "source": "TopBrain labels",
+      "sourceShortName": "r_ica_c1_c5",
+      "defaultVisible": true,
+      "defaultOpacity": 1.0,
+      "description": "Expert voxel annotation of Right internal carotid artery, C1–C5 (infraclinoid) from subject topcow_ct_001 of the TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations. Geometry follows the native voxel grid; segmentation accuracy is the dataset's own. Research and education use only, not for clinical decision.",
+      "geometry": {
+        "voxelCount": 18693,
+        "voxelBoundingBoxExclusive": [
+          [
+            73,
+            83,
+            0
+          ],
+          [
+            129,
+            151,
+            102
+          ]
+        ],
+        "vertexCount": 11037,
+        "triangleCount": 22086,
+        "boundsGltfM": [
+          [
+            -0.01955092263221741,
+            -0.19771051025390624,
+            -0.028104246854782106
+          ],
+          [
+            0.008886604070663454,
+            -0.13396051025390623,
+            0.006427035570144651
+          ]
+        ],
+        "closedSurface": true,
+        "affineWitness": {
+          "voxel": [
+            72.5,
+            144.0,
+            60.0
+          ],
+          "gltfM": [
+            0.008886604070663454,
+            -0.15989801025390624,
+            0.003126251220703119
+          ]
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "dataset": "TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations",
+    "datasetUrl": "https://doi.org/10.5281/zenodo.21972006",
+    "datasetPaper": "https://topbrain2025.grand-challenge.org",
+    "datasetLicense": "Open use, attribution required (opendata.swiss terms): non-commercial use is free, commercial use requires permission of the data owner, University Hospital Zurich",
+    "datasetLicenseUrl": "https://opendata.swiss/en/terms-of-use",
+    "datasetCitation": "Yang K, Shi P, Huang H, et al. TopBrain segmentation challenge for whole brain vessel anatomy. medRxiv 2026. Yang K, Musio F, Ma Y, et al. The TopCoW Challenge: Topology-Aware Circle of Willis Segmentation for CT and MR Angiography. NEJM AI 2026;3(8).",
+    "modality": "CTA",
+    "labelKind": "expert voxel annotation",
+    "subjectLayout": "labelmap",
+    "subject": "topcow_ct_001",
+    "ctSha256": "9dea5c8138e6884bdd9480d16ac4ed05f6a61ed9cccde658b2052d4d627030b3",
+    "ctUnits": "mm",
+    "resolvedUnits": "mm",
+    "unitsEvidence": {
+      "method": "NIfTI header",
+      "headerUnits": "mm"
+    },
+    "ctShapeVoxels": [
+      284,
+      327,
+      243
+    ],
+    "ctAffine": [
+      [
+        -0.5078129768371582,
+        0.0,
+        0.0,
+        45.70304489135742
+      ],
+      [
+        0.0,
+        -0.5078129768371582,
+        0.0,
+        69.99881744384766
+      ],
+      [
+        0.0,
+        0.0,
+        0.625,
+        -197.39801025390625
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "imageFile": "image.nii.gz",
+    "ctAffineSpace": "NIfTI RAS+ in resolvedUnits",
+    "ctAxisCodes": [
+      "L",
+      "P",
+      "S"
+    ],
+    "ctSpacing": [
+      0.5078129768371582,
+      0.5078129768371582,
+      0.625
+    ],
+    "sformCode": 2,
+    "qformCode": 0,
+    "sourceUnitToMm": 1.0,
+    "rasMmToGltfM": [
+      [
+        0.001,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.001,
+        0.0
+      ],
+      [
+        0.0,
+        -0.001,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "voxelToGltfM": [
+      [
+        -0.0005078129768371582,
+        0.0,
+        0.0,
+        0.045703044891357424
+      ],
+      [
+        0.0,
+        0.0,
+        0.000625,
+        -0.19739801025390624
+      ],
+      [
+        0.0,
+        0.0005078129768371582,
+        0.0,
+        -0.06999881744384766
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "coordinateRule": "voxel -> full NIfTI affine -> RAS mm -> (x,z,-y)/1000 glTF meters; no centering baked into mesh",
+    "masks": [
+      {
+        "structureKey": "ba",
+        "labelValue": 1,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_p1p2",
+        "labelValue": 2,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_p1p2",
+        "labelValue": 3,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_ica_c6_c7",
+        "labelValue": 4,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_m1",
+        "labelValue": 5,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_pcom",
+        "labelValue": 8,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_a1a2",
+        "labelValue": 11,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_a1a2",
+        "labelValue": 12,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_a3",
+        "labelValue": 13,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_a3",
+        "labelValue": 14,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_m2",
+        "labelValue": 17,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_m3",
+        "labelValue": 18,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_p3p4",
+        "labelValue": 21,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_p3p4",
+        "labelValue": 22,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_va",
+        "labelValue": 23,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_va",
+        "labelValue": 24,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_sca",
+        "labelValue": 25,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_sca",
+        "labelValue": 26,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_aica",
+        "labelValue": 27,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_pica",
+        "labelValue": 29,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_pica",
+        "labelValue": 30,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_oa",
+        "labelValue": 33,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_ica_c1_c5",
+        "labelValue": 35,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      }
+    ],
+    "skippedEmptyMasks": [
+      {
+        "structureKey": "l_ica_c6_c7",
+        "labelValue": 6,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_m1",
+        "labelValue": 7,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_pcom",
+        "labelValue": 9,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "acom",
+        "labelValue": 10,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "third_a2",
+        "labelValue": 15,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "third_a3",
+        "labelValue": 16,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_m2",
+        "labelValue": 19,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_m3",
+        "labelValue": 20,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_aica",
+        "labelValue": 28,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "r_acha",
+        "labelValue": 31,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_acha",
+        "labelValue": 32,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_oa",
+        "labelValue": 34,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      },
+      {
+        "structureKey": "l_ica_c1_c5",
+        "labelValue": 36,
+        "sourceSha256": "55cddeb60b529dd7ef7dbc88c7cc1ac5f9b173b2e9daf5a3404982019ff592a8",
+        "sourceUnits": "unknown",
+        "sourceShapeVoxels": [
+          284,
+          327,
+          243
+        ],
+        "sourceAffine": [
+          [
+            -0.5078129768371582,
+            0.0,
+            0.0,
+            45.70304489135742
+          ],
+          [
+            0.0,
+            -0.5078129768371582,
+            0.0,
+            69.99881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.625,
+            -197.39801025390625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "voxelToGltfM": [
+          [
+            -0.0005078129768371582,
+            0.0,
+            0.0,
+            0.045703044891357424
+          ],
+          [
+            0.0,
+            0.0,
+            0.000625,
+            -0.19739801025390624
+          ],
+          [
+            0.0,
+            0.0005078129768371582,
+            0.0,
+            -0.06999881744384766
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "gridCheck": "identical dimensions and physical voxel-to-world transform"
+      }
+    ],
+    "processing": {
+      "method": "marching_cubes",
+      "level": 0.5,
+      "gradientDirection": "ascent",
+      "crop": "per-structure voxel bounding box",
+      "paddingVoxels": 1,
+      "stepSize": 1,
+      "smoothing": false,
+      "decimation": false,
+      "resampling": false
+    },
+    "dependencies": {
+      "numpy": "2.4.6",
+      "nibabel": "5.4.2",
+      "scikit-image": "0.26.0",
+      "trimesh": "5.1.0"
+    },
+    "python": "3.11.15",
+    "platform": "Linux",
+    "elapsedSeconds": 1.329,
+    "glbBytes": 3196860,
+    "glbSha256": "c8c619d75c3e30850bcb5bb4532e05b5aeadf983ffffaffb9de643f16925b9e2",
+    "boundsGltfM": [
+      [
+        -0.054082205057144166,
+        -0.19771051025390624,
+        -0.045369888067245484
+      ],
+      [
+        0.04087882161140442,
+        -0.08833551025390624,
+        0.05111457753181457
+      ]
+    ],
+    "clinicalUse": "Research and education use only, not for clinical decision.",
+    "privacy": "No image intensities or free-text NIfTI header fields are exported into this manifest; geometry and affines only."
+  }
+}

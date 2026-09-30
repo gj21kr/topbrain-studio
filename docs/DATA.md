@@ -18,7 +18,11 @@ of Willis classes. https://doi.org/10.5281/zenodo.15692630
 Both are braincase-cropped, defaced, LPS+ NIfTI, and both carry the
 opendata.swiss terms "Open use. Must provide the source. Use for commercial
 purposes requires permission of the data owner" (University Hospital Zurich).
-Derived assets are therefore non-commercial and stay local.
+Derived assets are therefore non-commercial and stay local, with one
+maintainer-approved exception: the CTA subject topcow_ct_001 published for the
+non-commercial demo in `public/cases/topbrain-ct-001/` (meshes, manifest, a
+650,000-splat-budget context layer and ATTRIBUTION.txt), digests pinned in
+`scripts/check-public-build.mjs`.
 
 ## Subject layouts
 
@@ -165,6 +169,9 @@ fitting:
   holding the most splats is strided one step further until it fits, and the
   JSON records both `strideRequested` and the resolved `stride` per band. A
   0.5 mm braincase CTA reaches the limit on bone alone and ends at stride 2.
+  `--max-splats N` applies the same rule against a smaller budget for a
+  lighter file (the public case uses 650,000 for a 33 MB PLY) and records it
+  as `splatBudget`.
 - **Placement** applies the GLB's own `voxelToGltfM` to the voxel centre, so
   the layer and the meshes share one frame with no alignment step in the
   viewer. The viewer gives the layer exactly the centring and scaling it gives

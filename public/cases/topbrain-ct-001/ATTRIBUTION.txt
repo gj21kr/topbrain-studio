@@ -1,0 +1,17 @@
+Source: TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations; University Hospital Zurich (USZ).
+Data record: https://doi.org/10.5281/zenodo.21972006
+Challenge: https://topbrain2025.grand-challenge.org
+License: open use, attribution required (opendata.swiss terms of use). Non-commercial use is free; commercial use requires the permission of the data owner, University Hospital Zurich. https://opendata.swiss/en/terms-of-use
+This public demo is a non-commercial personal portfolio. Anyone reusing these files must keep this attribution and the same terms.
+Citation: Yang K, Shi P, Huang H, et al. TopBrain segmentation challenge for whole brain vessel anatomy. medRxiv 2026.
+Citation: Yang K, Musio F, Ma Y, et al. The TopCoW Challenge: Topology-Aware Circle of Willis Segmentation for CT and MR Angiography. NEJM AI 2026;3(8).
+
+Case: release CTA image topcow_ct_001_0000.nii.gz with its TopBrain v2 label map (36 unified classes; 23 are present in this subject's field of view).
+Source image SHA-256: 9dea5c8138e6884bdd9480d16ac4ed05f6a61ed9cccde658b2052d4d627030b3
+
+Adaptations (scripts/prepare_topbrain_subject.py, scripts/convert_subject.py, scripts/splat_context.py):
+- case.glb + case.json: each label value became one closed surface mesh on the native 0.51 x 0.51 x 0.625 mm voxel grid, without registration, resampling or smoothing; voxel -> NIfTI affine -> RAS mm -> (x, z, -y) / 1000 glTF metres, Y-up. Display colours, opacities and the anterior / posterior circulation groupings are this project's, not part of the release. Per-structure label values, voxel counts and checksums are in case.json.
+- case.context.ply + case.context.json: the CTA intensities as one Gaussian per selected voxel, initialised directly from the volume (no fitting), in the same glTF frame. Colour and opacity are a transfer function of Hounsfield units: bone >= 300 HU, contrast 150-300 HU, soft tissue -200-150 HU. To keep the download near 33 MB the layer was built with a 650,000-splat budget: bone keeps every 2nd voxel per axis, contrast every 2nd, soft tissue every 4th (624,246 splats). It is a reduced rendering of the scan, not the scan itself and not a photograph.
+- Nothing was mirrored, sculpted or inferred; an absent structure means it lies outside the scan field of view or was not annotated, not that the anatomy is absent.
+
+This is one subject of a research dataset shown for anatomy education. It is not a diagnostic device and not evidence about any patient.
