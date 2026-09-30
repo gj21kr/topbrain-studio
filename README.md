@@ -2,7 +2,7 @@
 
 공개 의료영상 데이터셋에서 해부 구조를 3D로 꺼내 브라우저에서 탐색하는 개인 프로젝트입니다. Python 변환기가 한 피험자의 분할 라벨 — [TotalSegmentator](https://doi.org/10.5281/zenodo.10047292)의 전신 CT 117구조, 또는 [TopBrain](https://doi.org/10.5281/zenodo.21972006)·[TopCoW](https://doi.org/10.5281/zenodo.15692630)의 CTA/MRA 뇌혈관 36–42구조 — 를 임베디드 GLB와 JSON manifest로 바꾸고, 같은 영상의 강도(CT는 HU, MRA는 강도 백분위)를 Gaussian splat **맥락 레이어**로 만들어 메시와 같은 좌표계에 깔며, three.js + [Spark](https://sparkjs.dev) 뷰어가 둘을 함께 읽습니다. 구조 검색, 그룹별 표시·투명도, 단독 보기, 카메라 프리셋, 분해(explode), 라벨, 맥락 레이어(CT/CTA/MRA) on/off·농도를 제공합니다.
 
-공개 데모([GitHub Pages](https://gj21kr.github.io/topbrain-studio/))의 첫 화면은 BodyParts3D 4.0 참조 아틀라스(CC BY 4.0)를 열고, 그 요청이 실패하면 코드로 그린 혈관 모식도가 나타납니다. 둘 다 특정 사례의 CT가 아닙니다. 실제 CT 해부학과 splat 레이어는 변환한 데이터를 열었을 때만 나타납니다. 이 도구는 진단 기기가 아닙니다.
+공개 데모([GitHub Pages](https://gj21kr.github.io/topbrain-studio/))의 첫 화면은 BodyParts3D 4.0 참조 아틀라스(CC BY 4.0)를 열고, 그 요청이 실패하면 코드로 그린 혈관 모식도가 나타납니다. 둘 다 특정 사례의 CT가 아닙니다. 실제 CTA 해부학과 splat 레이어는 **Open TopBrain CTA case**(승인된 공개 사례 하나, 약 38 MB)를 열거나 변환한 데이터를 가져왔을 때 나타납니다. 이 도구는 진단 기기가 아닙니다.
 
 ## 이 저장소가 보여주는 것
 
@@ -10,7 +10,7 @@
 - **언어 경계를 건너는 계약을 양쪽에서 강제한다.** GLB 상한(150 MB, 메시당 정점 3,000,000·인덱스 9,000,000), chunk 레이아웃, "schema 2면 모든 구조가 자기 출처를 가진다"는 규칙이 Python 변환기와 TypeScript 뷰어에 각각 구현돼 있고, Python 테스트가 `src/model.ts`를 직접 읽어 두 숫자가 같은지 대조합니다. 한쪽만 바꾸면 CI가 깨집니다.
 - **테스트가 무엇을 검증하는지 뮤테이션으로 확인했다.** 상수를 바꾸거나 분기를 지웠을 때 실제로 실패하는 테스트만 남겼습니다. 이 과정에서 "통과하지만 아무것도 검증하지 않는" 테스트 네 개를 찾아 고쳤습니다.
 - **분할 경계와 원본 CT를 한 좌표계에 겹친다.** 메시는 분할이 *어디서 끝나는지*를, splat 레이어는 그 경계가 *어떤 조직 속에 앉아 있는지*를 보여줍니다. 복셀당 Gaussian 하나를 학습 없이 볼륨에서 직접 초기화하고(뼈·조영 혈관·연조직의 HU 전달함수), 뷰어는 PLY 헤더의 splat 수, CT 체크섬, voxel→glTF 행렬이 GLB manifest와 일치할 때만 레이어를 받습니다. 다른 피험자·다른 좌표계의 레이어는 열리지 않습니다.
-- **데이터는 저장소에 없다.** 코드만 배포하고, 데이터셋은 Zenodo에서 직접 받아 로컬에서 변환합니다. 파생 에셋은 `private-assets/`에 두고 커밋하지 않습니다. 유일한 예외는 명시적으로 승인한 BodyParts3D 참조 아틀라스 세 파일이며, 공개 빌드 검사가 그 digest를 고정하고 다른 파일은 거부합니다.
+- **데이터는 저장소에 없다.** 코드만 배포하고, 데이터셋은 Zenodo에서 직접 받아 로컬에서 변환합니다. 파생 에셋은 `private-assets/`에 두고 커밋하지 않습니다. 예외는 명시적으로 승인한 두 묶음, BodyParts3D 참조 아틀라스 세 파일과 TopBrain 2025 CTA 사례 다섯 파일(`public/cases/topbrain-ct-001/`, 출처 표기·비상업)뿐이며, 공개 빌드 검사가 그 digest를 고정하고 다른 파일은 거부합니다.
 
 ## 데이터셋
 
@@ -83,7 +83,11 @@ npm run check:public-build
 Remove-Item Env:GITHUB_PAGES
 ```
 
-**게시 경계:** Pages는 공개 서비스입니다. `public/`과 `dist/`에는 데모 코드·파비콘과 `reference/bodyparts3d.glb`, `reference/bodyparts3d.json`, `reference/ATTRIBUTION.txt`만 허용하며 세 참조 파일이 모두 있어야 배포합니다. 빌드 검사는 그 외 파일·디렉터리·심볼릭 링크·하드 링크·대용량 번들을 거부합니다. 파일명과 manifest의 출처 표기는 데이터셋 파생물이 아닌지 증명하지 못하므로 공개 참조 모델의 원본과 변환 내역을 별도로 검토해야 합니다. 데이터셋 원본·파생물(GLB, manifest, splat PLY)과 사례별 좌표 정보는 저장소, `public/`, Pages artifact 어디에도 넣지 마세요. 공개 페이지에는 로컬 개발 서버의 **Open local case** 기능이 없습니다. 실제 사례는 각 방문자가 **Import GLB + manifest**로 자신의 브라우저에서 직접 선택하며, 이 과정에서 파일은 서버로 업로드되지 않습니다.
+**게시 경계:** Pages는 공개 서비스입니다. `public/`과 `dist/`에는 데모 코드·파비콘, `reference/bodyparts3d.glb`, `reference/bodyparts3d.json`, `reference/ATTRIBUTION.txt`, 그리고 `cases/topbrain-ct-001/`의 `case.glb`, `case.json`, `case.context.ply`, `case.context.json`, `ATTRIBUTION.txt`만 허용하며 여덟 파일이 모두 있어야 배포합니다. 빌드 검사는 digest가 고정된 그 파일들 외의 파일·디렉터리·심볼릭 링크·하드 링크·대용량 번들을 거부하고, 사례 manifest·context JSON·PLY가 같은 TopBrain CTA 영상(checksum)과 같은 splat 예산을 가리키는지 확인합니다. 파일명과 manifest의 출처 표기는 라이선스를 증명하지 못하므로 공개 에셋의 원본과 변환 내역은 별도로 검토합니다. 승인되지 않은 데이터셋 원본·파생물(GLB, manifest, splat PLY)은 저장소, `public/`, Pages artifact 어디에도 넣지 마세요. 공개 페이지에는 로컬 개발 서버의 **Open local case** 기능이 없습니다. 다른 사례는 각 방문자가 **Import GLB + manifest**로 자신의 브라우저에서 직접 선택하며, 이 과정에서 파일은 서버로 업로드되지 않습니다.
+
+## 공개 TopBrain CTA 사례
+
+**Open TopBrain CTA case**는 TopBrain 2025 릴리스의 CTA 피험자 `topcow_ct_001`을 엽니다. 23개 혈관 메시(TopBrain v2 라벨, 원본 voxel 격자)와 같은 영상의 CTA splat 레이어가 함께 로드됩니다. 웹 다운로드를 위해 레이어는 `--max-splats 650000`으로 만들어 bone·contrast는 2 voxel, 연부조직은 4 voxel 간격으로 줄였고(624,246 splats, 33 MB), 요청한 stride와 실제 stride를 `case.context.json`에 기록합니다. 라이선스는 opendata.swiss 이용 약관(출처 표기 필수, 비상업 이용 자유, 상업 이용은 데이터 소유자 University Hospital Zurich의 허가)이며 이 데모는 비상업 개인 포트폴리오입니다. 재사용 시 [ATTRIBUTION.txt](https://gj21kr.github.io/topbrain-studio/cases/topbrain-ct-001/ATTRIBUTION.txt)의 표기와 같은 조건을 유지해야 합니다. 그 외 TopBrain·TopCoW 파생물은 로컬에만 둡니다.
 
 ## 공개 BodyParts3D 참조 아틀라스
 

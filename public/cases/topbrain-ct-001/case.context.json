@@ -1,0 +1,133 @@
+{
+  "contextVersion": 1,
+  "kind": "gaussian-splat-context",
+  "source": "TopBrain 2025 challenge data release (Yang et al.), TopCoW CTA/MRA images with whole-brain vessel annotations; https://doi.org/10.5281/zenodo.21972006",
+  "license": "Open use, attribution required (opendata.swiss terms): non-commercial use is free, commercial use requires permission of the data owner, University Hospital Zurich; https://opendata.swiss/en/terms-of-use",
+  "coordinateSystem": "glTF-Y-up",
+  "units": "m",
+  "provenance": "CTA intensities of one subject rendered as one Gaussian per selected voxel, initialised from the volume without fitting. Color and opacity are a transfer function of Hounsfield units, not a photograph. Research and education use only, not for clinical decision.",
+  "subject": "topcow_ct_001",
+  "modality": "CTA",
+  "imageFile": "image.nii.gz",
+  "ctSha256": "9dea5c8138e6884bdd9480d16ac4ed05f6a61ed9cccde658b2052d4d627030b3",
+  "ctUnits": "mm",
+  "resolvedUnits": "mm",
+  "unitsEvidence": {
+    "method": "NIfTI header",
+    "headerUnits": "mm"
+  },
+  "sourceUnitToMm": 1.0,
+  "voxelToGltfM": [
+    [
+      -0.0005078129768371582,
+      0.0,
+      0.0,
+      0.045703044891357424
+    ],
+    [
+      0.0,
+      0.0,
+      0.000625,
+      -0.19739801025390624
+    ],
+    [
+      0.0,
+      0.0005078129768371582,
+      0.0,
+      -0.06999881744384766
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "coordinateRule": "voxel -> full NIfTI affine -> RAS mm -> (x,z,-y)/1000 glTF meters; identical to the GLB manifest so both layers coincide",
+  "gaussianFrame": {
+    "voxelSizeM": [
+      0.0005078129768371582,
+      0.0005078129768371582,
+      0.000625
+    ],
+    "rotationWxyz": [
+      0.0,
+      0.0,
+      0.7071067811865476,
+      0.7071067811865475
+    ],
+    "sigma": "half a (strided) voxel per axis"
+  },
+  "transferFunction": [
+    {
+      "band": "bone",
+      "strideRequested": 1,
+      "stride": 2,
+      "alpha": 0.85,
+      "rgb": [
+        0.93,
+        0.9,
+        0.82
+      ],
+      "kind": "hu",
+      "huMin": 300,
+      "huMax": 4000,
+      "low": 300,
+      "high": 4000,
+      "splats": 345830
+    },
+    {
+      "band": "contrast",
+      "strideRequested": 1,
+      "stride": 2,
+      "alpha": 0.45,
+      "rgb": [
+        0.85,
+        0.55,
+        0.45
+      ],
+      "kind": "hu",
+      "huMin": 150,
+      "huMax": 300,
+      "low": 150,
+      "high": 300,
+      "splats": 64653
+    },
+    {
+      "band": "soft tissue",
+      "strideRequested": 3,
+      "stride": 4,
+      "alpha": 0.06,
+      "rgb": [
+        0.55,
+        0.5,
+        0.5
+      ],
+      "kind": "hu",
+      "huMin": -200,
+      "huMax": 150,
+      "low": -200,
+      "high": 150,
+      "splats": 213763
+    }
+  ],
+  "splats": 624246,
+  "splatBudget": 650000,
+  "witness": {
+    "voxel": [
+      0,
+      92,
+      60
+    ],
+    "gltfM": [
+      0.045703044891357424,
+      -0.15989801025390624,
+      -0.023280023574829105
+    ],
+    "band": "bone"
+  },
+  "plyBytes": 34958138,
+  "plySha256": "b0167fc8c3a299d6db591aac1c824ee3a9d501c26ed175d2ac0c871f707457f8",
+  "elapsedSeconds": 4.612,
+  "clinicalUse": "Research and education use only, not for clinical decision."
+}

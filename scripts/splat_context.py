@@ -103,17 +103,21 @@ def gaussian_frame(transform: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return spacing, quaternion / np.linalg.norm(quaternion)
 
 
-def resolve_transfer(volume: np.ndarray, modality: str = "CT") -> tuple[str, list[dict]]:
+def resolve_transfer(volume: np.ndarray, modality: str = "CT", budget: int | None = None) -> tuple[str, list[dict]]:
     """The transfer function for a modality with every band's bounds resolved to intensities.
 
     Strides start at the table's values. When the selection would exceed the
-    viewer's splat limit, the band holding the most splats is strided one step
-    further, repeatedly, and both the requested and the resolved stride are
-    recorded: a 0.5 mm braincase CTA has more bone voxels than a 1.5 mm whole
-    body, and the layer must stay honest about what it dropped.
+    splat budget (the viewer's limit, or a smaller one asked for a lighter
+    file), the band holding the most splats is strided one step further,
+    repeatedly, and both the requested and the resolved stride are recorded: a
+    0.5 mm braincase CTA has more bone voxels than a 1.5 mm whole body, and
+    the layer must stay honest about what it dropped.
     """
     if modality not in TRANSFERS:
         raise ValueError("Modality must be CT, CTA or MRA.")
+    budget = MAX_SPLATS if budget is None else budget
+    if not 1 <= budget <= MAX_SPLATS:
+        raise ValueError(f"The splat budget must be 1-{MAX_SPLATS}.")
     kind, table = TRANSFERS[modality]
     bands = []
     for band, low, high, stride, alpha, rgb in table:
@@ -130,10 +134,10 @@ def resolve_transfer(volume: np.ndarray, modality: str = "CT") -> tuple[str, lis
         step = entry["stride"]
         return int(entry["mask"][::step, ::step, ::step].sum())
     counts = [count(entry) for entry in bands]
-    while sum(counts) > MAX_SPLATS:
+    while sum(counts) > budget:
         largest = max(range(len(bands)), key=lambda i: counts[i])
         if bands[largest]["stride"] >= 8:
-            raise ValueError("The transfer function cannot fit the splat limit even at stride 8.")
+            raise ValueError("The transfer function cannot fit the splat budget even at stride 8.")
         bands[largest]["stride"] += 1
         counts[largest] = count(bands[largest])
     for entry, n in zip(bands, counts):
@@ -227,8 +231,12 @@ def validate_splat_ply(payload: bytes) -> int:
     return count
 
 
-def build_context(subject_dir: Path, output: Path, units: str | None = None) -> dict:
-    """Write <output>.context.ply and .context.json for one subject (either layout)."""
+def build_context(subject_dir: Path, output: Path, units: str | None = None, budget: int | None = None) -> dict:
+    """Write <output>.context.ply and .context.json for one subject (either layout).
+
+    A budget below the viewer's limit trades resolution for a smaller PLY, for
+    an asset that must download over the web; the resolved strides record it.
+    """
     started = time.perf_counter()
     layout = subject_layout(subject_dir)
     dataset = dataset_attribution(subject_dir, layout)
@@ -245,7 +253,7 @@ def build_context(subject_dir: Path, output: Path, units: str | None = None) -> 
     volume = np.asanyarray(image.dataobj)
     if not np.issubdtype(volume.dtype, np.number) or not np.isfinite(volume).all():
         raise ValueError("Image intensities must be finite numbers.")
-    kind, resolved = resolve_transfer(volume, modality)
+    kind, resolved = resolve_transfer(volume, modality, budget)
     bands = [(e["band"], np.argwhere(e["mask"] if e["stride"] == 1 else e["mask"] & strided(e["mask"].shape, e["stride"])), e["stride"], e["alpha"], tuple(e["rgb"])) for e in resolved]
     ply_path = output.with_suffix(".context.ply")
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -279,6 +287,7 @@ def build_context(subject_dir: Path, output: Path, units: str | None = None) -> 
         "gaussianFrame": {"voxelSizeM": spacing.tolist(), "rotationWxyz": quaternion.tolist(), "sigma": "half a (strided) voxel per axis"},
         "transferFunction": [{k: v for k, v in entry.items() if k not in {"mask", "selected"}} | {"splats": counts[entry["band"]]} for entry in resolved],
         "splats": total,
+        "splatBudget": MAX_SPLATS if budget is None else budget,
         "witness": witness,
         "plyBytes": len(payload),
         "plySha256": hashlib.sha256(payload).hexdigest(),
@@ -294,10 +303,11 @@ def main() -> None:
     parser.add_argument("--subject", type=Path, required=True, help="Subject directory in either layout (ct.nii.gz, or image.nii.gz + dataset.json)")
     parser.add_argument("--output", type=Path, required=True, help="Output stem shared with convert_subject.py, e.g. private-assets/local-case")
     parser.add_argument("--units", choices=sorted(UNIT_TO_MM), help="Spatial unit override; unset headers are read as mm and recorded")
+    parser.add_argument("--max-splats", type=int, help=f"Splat budget below the viewer's {MAX_SPLATS} for a lighter file; the largest band is strided further and the strides are recorded")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     try:
-        context = build_context(args.subject, args.output, args.units)
+        context = build_context(args.subject, args.output, args.units, args.max_splats)
     except (OSError, ValueError, nib.filebasedimages.ImageFileError) as error:
         LOGGER.error("Context layer failed (%s). Check the subject layout, spatial units and destination permissions.", type(error).__name__)
         raise SystemExit(1) from None

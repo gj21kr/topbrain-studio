@@ -245,6 +245,26 @@ class SplatBudgetTests(unittest.TestCase):
         self.assertEqual([b["stride"] for b in untouched], [1, 1, 3])
         self.assertEqual(sum(b["selected"] for b in untouched), 27_000)
 
+    def test_a_smaller_budget_strides_further_and_is_recorded(self):
+        from scripts.splat_context import build_context, resolve_transfer
+        volume = np.full((30, 30, 30), 500, dtype=np.int16)
+        volume[:, :, :10] = 200
+        _, bands = resolve_transfer(volume, "CT", budget=6_000)
+        # 27,000 > 6,000: bone 18,000 -> stride 2 (2,250); contrast 9,000 -> stride 2 (15 x 15 x 5 = 1,125); 3,375 fits.
+        self.assertEqual([(b["strideRequested"], b["stride"], b["selected"]) for b in bands], [(1, 2, 2250), (1, 2, 1125), (3, 3, 0)])
+        with self.assertRaisesRegex(ValueError, "budget must be"):
+            resolve_transfer(volume, "CT", budget=0)
+        with self.assertRaisesRegex(ValueError, "budget must be"):
+            resolve_transfer(volume, "CT", budget=MAX_SPLATS + 1)
+        with tempfile.TemporaryDirectory() as folder:
+            subject = Path(folder) / "s1"
+            subject.mkdir()
+            nib.save(nib.Nifti1Image(volume, np.diag([1.0, 1.0, 1.0, 1.0])), subject / "ct.nii.gz")
+            context = build_context(subject, Path(folder) / "out" / "case", budget=6_000)
+            self.assertEqual((context["splats"], context["splatBudget"]), (3375, 6000))
+            self.assertEqual([b["stride"] for b in context["transferFunction"]], [2, 2, 3])
+            self.assertEqual(build_context(subject, Path(folder) / "out" / "full")["splatBudget"], MAX_SPLATS)
+
     def test_a_volume_that_cannot_fit_even_at_stride_eight_is_refused(self):
         import scripts.splat_context as module
         from scripts.splat_context import resolve_transfer
