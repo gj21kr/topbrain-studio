@@ -48,3 +48,6 @@ acceptance-screenshots/
 *.[wW][eE][bB][pP]
 artifacts/
 *.log
+
+# local editor / dev-server config
+.claude/
